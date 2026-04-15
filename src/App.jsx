@@ -1,34 +1,33 @@
+import SchedulerGrid from "./components/scheduler/SchedulerGrid";
+import DatePicker from "./components/ui/DatePicker";
+
 const App = () => {
   return(
-    <div>
-      <header>
-        Navigation and Controls
-        - ViewSwitch component to toggle between different views (e.g., calendar, list, grid)
-        - Date selection controls (e.g., date picker, next/previous buttons)
-      </header>
-      <main>
-        Main Canvas - a vertical scrolling grid. Y-axis is time, X-axis for staff members
-          - Each staff member has a column, and each time slot is a row
-          - Appointment blocks are rendered as rectangles spanning the appropriate time slots and staff columns
-          - Appointment blocks are color-coded based on shift type (e.g., morning, afternoon, night)
-          - Appointment blocks display key information (e.g., client name, client number, appointment time, service type) and can be clicked for more details or editing and creating new appointments
+    <div className="flex h-screen w-full bg-white overflow-hidden">
+            
+      <div className="flex flex-1 flex-col h-full overflow-hidden">
         
-        Time column
-          - A fixed column on the left side of the grid that displays time intervals (e.g., every 30 minutes)
-          - This column remains visible as the user scrolls vertically through the schedule
-        
-        Staff column
-          - A fixed row at the top of the grid that displays staff member names
-          - This row remains visible as the user scrolls horizontally through the schedule
-        
-        Status indicators
-          - Hatched/Gray areas to indicate unavailable time slots (e.g., breaks, off-duty)
-          - White areas to indicate available time slots
-          - Colored blocks to indicate scheduled appointments, with different colors representing different types of appointments or clients
+        {/* 3. Header - Fixed Height at the top */}
+        <header className="h-16 border-b border-slate-200 bg-white flex items-center px-6">
+          {/* <Header /> */}
+          <div className="font-bold">
+            <DatePicker />
+          </div>
+        </header>
 
-        Sidebar widget
-          - Mini calendar for quick date navigation
-      </main>
+        {/* 4. The Scheduler Canvas */}
+        <main className="flex-1 overflow-hidden bg-slate-100 p-1">
+          {/* <SchedulerGrid /> */}
+          <SchedulerGrid />
+        </main>
+
+      </div>
+
+      <aside className="w-64 h-full border-r border-slate-200 bg-slate-50 hidden md:block">
+        {/* <Sidebar /> */}
+        <div className="p-4 font-bold text-slate-400">Sidebar Placeholder</div>
+      </aside>
+
     </div>
   )
 }
