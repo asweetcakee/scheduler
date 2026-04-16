@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 
 const TimeColumn = () => {
-  const hours = Array.from({ length: 16 }, (_, i) => i + 7); // 7 AM to 10 PM
+  const hours = Array.from({ length: 17 }, (_, i) => i + 7); // 7 AM to 11 PM
 
   // Logic: 1 hour = 120px total height
   // 30 mins = 60px
@@ -15,12 +15,12 @@ const TimeColumn = () => {
           {/* HOUR BLOCK (00 to 30) */}
           <div className="relative h-[60px] border-b border-slate-300">
             {/* Hour Label */}
-            <span className="absolute top-0 left-0 right-0 text-center text-[10px] font-medium text-slate-500 bg-white px-1 z-10">
+            <span className="absolute top-0 left-0 right-0 text-center text-[10px] font-bold text-slate-500 bg-white px-1 z-10">
               {`${hour}:00`}
             </span>
             
             {/* 15-minute subtle line */}
-            <div className="absolute top-[30px] w-full border-t border-slate-100 border-dashed" />
+            <div className="absolute top-[30px] w-full border-t border-red-500 border-dashed" />
           </div>
 
           {/* HALF-HOUR BLOCK (30 to 00) */}

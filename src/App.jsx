@@ -7,7 +7,6 @@ const App = () => {
             
       <div className="flex flex-1 flex-col h-full overflow-hidden">
         
-        {/* 3. Header - Fixed Height at the top */}
         <header className="h-16 border-b border-slate-200 bg-white flex items-center px-6">
           {/* <Header /> */}
           <div className="font-bold">
@@ -15,9 +14,7 @@ const App = () => {
           </div>
         </header>
 
-        {/* 4. The Scheduler Canvas */}
         <main className="flex-1 overflow-hidden bg-slate-100 p-1">
-          {/* <SchedulerGrid /> */}
           <SchedulerGrid />
         </main>
 
