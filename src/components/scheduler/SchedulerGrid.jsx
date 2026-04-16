@@ -1,6 +1,6 @@
-import TimeColumn from "./TimeColumn";
-import StaffColumn from "./StaffColumn";
-import { MOCK_STAFF_SM } from "../../mocks/data.js";
+import TimeColumn from "./TimeColumn"
+import StaffColumn from "./StaffColumn"
+import { MOCK_STAFF_SM } from "../../mocks/data.js"
 
 const SchedulerGrid = () => {
   return (
@@ -21,7 +21,7 @@ const SchedulerGrid = () => {
       </div>
 
     </div>
-  );
-};
+  )
+}
 
-export default SchedulerGrid;
+export default SchedulerGrid

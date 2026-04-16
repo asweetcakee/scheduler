@@ -11,12 +11,12 @@ const StaffColumn = ({ staff }) => {
       </div>
 
       {/* Body cell — appointments go here later */}
-      <div className="h-[1920px] relative">
+      <div className="h-fit relative">
         {/* AppointmentBlock components will be absolutely positioned here */}
       </div>
 
     </div>
-  );
-};
+  )
+}
 
-export default StaffColumn;
+export default StaffColumn

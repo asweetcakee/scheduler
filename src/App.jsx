@@ -1,5 +1,5 @@
-import SchedulerGrid from "./components/scheduler/SchedulerGrid";
-import DatePicker from "./components/ui/DatePicker";
+import SchedulerGrid from "./components/scheduler/SchedulerGrid"
+import DatePicker from "./components/ui/DatePicker"
 
 const App = () => {
   return(
@@ -29,4 +29,4 @@ const App = () => {
   )
 }
 
-export default App;
+export default App
