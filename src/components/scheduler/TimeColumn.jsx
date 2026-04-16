@@ -1,6 +1,7 @@
-import { Fragment } from "react"
+import { useSchedulerStore } from "../store/useSchedulerStore"
 
 const TimeColumn = () => {
+  const { slotHeight } = useSchedulerStore()
   const startHour = 7
   const endHour = 24
 
@@ -24,9 +25,10 @@ const TimeColumn = () => {
 
         return (
           <div 
-            key={index} 
-            className={`h-6 border-slate-300 flex items-center justify-end pr-2 select-none
-              ${isFullHour ? 'border-b' : isHalfHour ? 'border-b border-dashed' : 'border-none'}
+            key={index}
+            style={{ height: `${slotHeight * 3}px` }} 
+            className={`border-slate-200 flex items-center justify-end pr-2 select-none
+              ${isFullHour ? 'border-t' : isHalfHour ? 'border-t border-dashed' : 'border-none'}
             `}
           >
             <span className={`text-[12px] text-right w-full
