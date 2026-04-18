@@ -1,9 +1,9 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useSchedulerStore } from '../store/useSchedulerStore'
+import { useSchedulerStore } from '../../store/useSchedulerStore'
 import { format } from 'date-fns'
 
 const DatePicker = () => {
-  const { selectedDate, goToNextDay, goToPreviousDay } = useSchedulerStore();
+  const { selectedDate, goToNextDay, goToPreviousDay } = useSchedulerStore()
   
   return(
     <div className="flex items-center gap-4">
@@ -22,4 +22,4 @@ const DatePicker = () => {
   )
 }
 
-export default DatePicker;
+export default DatePicker

@@ -1,35 +1,58 @@
-import { useSchedulerStore } from "../store/useSchedulerStore"
+import { useSchedulerStore } from "../../store/useSchedulerStore"
 
 const StaffColumn = ({ staff }) => {
-  // Depending on the number of staff in MOCK_STAFF, the column width in StaffColumn (currently set to min-w-[200px]) may need to be adjusted to fit the layout properly.
-  // Write here an adaptive calculation for column width
-
-  const { startHour, endHour, slotHeight } = useSchedulerStore()
+  const { startHour, endHour, slotHeight, openCreateModalFromGrid, selectedDate } = useSchedulerStore()
   const totalHours = endHour - startHour
-  const totalHeight = totalHours * (60 / 5) * slotHeight // total hours * number of 5-min slots per hour * height of each slot
+  const totalSlots = totalHours * 12 // 12 slots of 5-mins per hour
+  const totalHeight = totalSlots * slotHeight
+
+  const handleSlotClick = (slotIndex) => {
+    const totalMinutes = slotIndex * 5
+    const hour = Math.floor(totalMinutes / 60) + startHour
+    const minutes = totalMinutes % 60
+    const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+    
+    console.log(`Open modal for ${staff.name} at ${timeString}`)
+    openCreateModalFromGrid({
+      staffId: staff.id,
+      date: selectedDate.toISOString().split('T')[0], // format as YYYY-MM-DD
+      startTime: timeString,
+    })
+  }
 
   return (
     <div className="flex flex-col flex-1 min-w-[200px] border-r border-slate-200">
-
-      <div className="sticky top-0 z-10 h-16 bg-white 
-                      flex items-center justify-center font-medium">
+      <div className="sticky top-0 z-10 h-16 bg-white flex items-center justify-center font-medium shadow-sm">
         {staff.name}
       </div>
 
       <div 
-        className="h-max relative w-full bg-white"
+        className="relative w-full bg-white group"
         style={{
           height: `${totalHeight}px`,
           backgroundImage: `
             linear-gradient(to bottom, #e2e8f0 1px, transparent 1px),
             linear-gradient(to bottom, #f1f5f9 1px, transparent 1px)
           `,
-          backgroundSize: `100% ${slotHeight * 12}px, 100% ${slotHeight * 6}px`
+          backgroundSize: `100% ${slotHeight * 12}px, 100% ${slotHeight * 6}px`,
+          backgroundPosition: '0 0px'
         }}
       >
-        {/* AppointmentBlock components will be absolutely positioned here */}
-      </div>
+        {/* INTERACTION LAYER: Mapping invisible 5-min hit zones */}
+        <div className="absolute inset-0 flex flex-col">
+          {Array.from({ length: totalSlots }).map((_, i) => (
+            <div
+              key={i}
+              style={{ height: `${slotHeight}px` }}
+              className="w-full cursor-pointer hover:bg-blue-500/10 transition-colors"
+              onClick={() => handleSlotClick(i)}
+              title={`Add appointment at slot ${i}`} // tooltip for debugging, can be removed later
+            />
+          ))}
+        </div>
 
+        {/* AppointmentBlocks will go here later - needs higher z-index than interaction layer */}
+      </div>
     </div>
   )
 }

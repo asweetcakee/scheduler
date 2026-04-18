@@ -13,7 +13,6 @@ const SchedulerGrid = () => {
           <TimeColumn />
         </div>
 
-        {/* Staff columns — each owns its own header + body */}
         {MOCK_STAFF_SM.map(staff => (
           <StaffColumn key={staff.id} staff={staff} />
         ))}

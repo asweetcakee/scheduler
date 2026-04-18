@@ -1,9 +1,7 @@
-import { useSchedulerStore } from "../store/useSchedulerStore"
+import { useSchedulerStore } from "../../store/useSchedulerStore"
 
 const TimeColumn = () => {
-  const { slotHeight } = useSchedulerStore()
-  const startHour = 7
-  const endHour = 24
+  const { slotHeight, startHour, endHour } = useSchedulerStore()
 
   const totalSlots = (endHour - startHour) * 4 // 15 min intervals
   const slots = Array.from({ length: totalSlots }, (_, i) => {
@@ -12,9 +10,6 @@ const TimeColumn = () => {
     const minutes = totalMinutes % 60
     return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
   })
-
-  
-  console.log('Slots: ', slots)
 
   return (
     <div className="w-20 bg-slate-50 border-r border-slate-200">
