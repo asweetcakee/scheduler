@@ -1,5 +1,6 @@
 import SchedulerGrid from "./components/scheduler/SchedulerGrid"
 import DatePicker from "./components/ui/DatePicker"
+import AppointmentModal from "./components/modals/AppointmentModal"
 
 const App = () => {
   return(
@@ -19,7 +20,7 @@ const App = () => {
         </main>
 
       </div>
-
+      <AppointmentModal />
       <aside className="w-64 h-full border-r border-slate-200 bg-slate-50 hidden md:block">
         {/* <Sidebar /> */}
         <div className="p-4 font-bold text-slate-400">Sidebar Placeholder</div>

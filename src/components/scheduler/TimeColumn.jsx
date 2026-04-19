@@ -22,7 +22,7 @@ const TimeColumn = () => {
           <div 
             key={index}
             style={{ height: `${slotHeight * 3}px` }} 
-            className={`border-slate-200 flex items-center justify-end pr-2 select-none
+            className={`border-slate-200 flex justify-end pr-2 select-none
               ${isFullHour ? 'border-t' : isHalfHour ? 'border-t border-dashed' : 'border-none'}
             `}
           >

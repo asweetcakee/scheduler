@@ -2,17 +2,17 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import { startOfToday, subDays, addDays } from "date-fns"
 
-const DEFAULT_FORM_DATA = {
+const DEFAULT_SEED = {
   id: null,
   staffId: null,
-  date: '',
+  date: '', 
   startTime: '',
-  endTime: '',
+  endTime: '',  // read-only calculated from startTime + services duration
   services: [
     {
       serviceId: null,
       duration: 0,
-      price: 0.00,
+      priceSnapshot: 0.00, // price at the time of booking
       discountPercent: 0,
       discountValue: 0.00,
       total: 0.00
@@ -25,8 +25,14 @@ const DEFAULT_FORM_DATA = {
   
   // For future use when we implement notifications
   notificationSettings: {
-    remind: false,  // whether to send a reminder to the client
-    requestedReview: false, // remind to ask for review after appointment
+    // Reminder 1 pre-appointment, sent to client and/or staff
+    remindClient: false,
+    remindStaff: false,
+    remindBeforeMinutes: 60,
+
+    // Reminder 2 post-appointment review request, client only
+    requestReview: false, 
+    reviewAfterMinutes: 60, 
   },
 
   adminNotes: '', // for internal use, not visible to clients,
@@ -37,9 +43,7 @@ export const useSchedulerStore = create(devtools((set, get) => ({
   // Global state for the scheduler app
   selectedDate: startOfToday(),
   viewMode: 'day', // 'day', 'week', 'list'
-  
-  allServices: [], // This will hold the list of all available services for easy access in modals
-  
+    
   // Time range and slot settings for TimeColumn and StaffColumn
   startHour: 7,
   endHour: 24,
@@ -49,8 +53,16 @@ export const useSchedulerStore = create(devtools((set, get) => ({
   modal : {
     isOpen: false,
     mode: 'create', // 'create' or 'edit',
-    originalData: null, // to hold original appointment data when editing
-    formData: structuredClone(DEFAULT_FORM_DATA)
+    originalData: null, // copy of appointment before edits
+    seedData: structuredClone(DEFAULT_SEED)
+  },
+
+  // fetched during session, cleared on close
+  modalRuntime: {
+    clientDiscounts: [], // [{ serviceId, discountPercent }]
+    availableSlots: [], // ['07:00', '07:05', ...]
+    isFetchingSlots: false,
+    isFetchingDiscounts: false
   },
 
   // Navigation and view mode actions
@@ -59,47 +71,61 @@ export const useSchedulerStore = create(devtools((set, get) => ({
   setSelectedDate: (date) => set({ selectedDate: date }),
   setViewMode: (mode) => set({ viewMode: mode }),
 
-  // Service management actions
-  setAllServices: (services) => set({ allServices: services }),
-
   // Modal actions
-  openCreateModalFromGrid: (initialData = {}) => set({
+  openCreateModal: (initialData = {}) => set({
     modal: {
       isOpen: true,
       mode: 'create',
       originalData: null,
-      formData: { ...structuredClone(DEFAULT_FORM_DATA), ...initialData }
+      seedData: { ...structuredClone(DEFAULT_SEED), ...initialData }
+    },
+    modalRuntime: {
+      clientDiscounts: [],
+      availableSlots: [],
+      isFetchingSlots: false,
+      isFetchingDiscounts: false
     }
   }),
-  openEditModal: (appointment) => set((state) => ({
+  openEditModal: (appointment) => set({
     modal: {
       isOpen: true,
       mode: 'edit',
-      originalData: { ...appointment }, // keep a copy of original data for comparison
-      formData: {
-        ...appointment, // pre-fill form with appointment data
-        services: appointment.services || [
-          {
-            serviceId: appointment.serviceId || null,
-            duration: appointment.duration || 0,
-            price: appointment.price || 0.00,
-            discountPercent: appointment.discountPercent || 0,
-            discountValue: appointment.discountValue || 0.00,
-            total: appointment.total || appointment.price || 0.00
-          }
-        ]
-      }
-    }
-  })),
-  closeModal: () => set((state) => ({
+      originalData: structuredClone(appointment),
+      seedData: {
+        ...structuredClone(DEFAULT_SEED),
+        ...appointment,
+        services: appointment.services?.length
+          ? appointment.services
+          : structuredClone(DEFAULT_SEED.services),
+      },
+    },
+    modalRuntime: {
+      clientDiscounts: [],
+      availableSlots: [],
+      isFetchingSlots: false,
+      isFetchingDiscounts: false,
+    },
+  }),
+  closeModal: () => set({
     modal: {
-      ...state.modal,
       isOpen: false,
       mode: 'create',
       originalData: null,
-      formData: structuredClone(DEFAULT_FORM_DATA)
-    }
-  })),
+      seedData: structuredClone(DEFAULT_SEED),
+    },
+    modalRuntime: {
+      clientDiscounts: [],
+      availableSlots: [],
+      isFetchingSlots: false,
+      isFetchingDiscounts: false,
+    },
+  }),
+
+  // Runtime setters (called by modal internals during session)
+  setAvailableSlots: (slots) => set(s => ({ modalRuntime: { ...s.modalRuntime, availableSlots: slots } })),
+  setIsFetchingSlots: (bool) => set(s => ({ modalRuntime: { ...s.modalRuntime, isFetchingSlots: bool } })),
+  setClientDiscounts: (discounts) => set(s => ({ modalRuntime: { ...s.modalRuntime, clientDiscounts: discounts } })),
+  setIsFetchingDiscounts: (bool) => set(s => ({ modalRuntime: { ...s.modalRuntime, isFetchingDiscounts: bool } })),
   
   // TimeColumn and StaffColumn settings
   setStartHour: (hour) => set({ startHour: hour }),

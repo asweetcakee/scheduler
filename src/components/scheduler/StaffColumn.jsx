@@ -1,7 +1,8 @@
+import { format } from "date-fns"
 import { useSchedulerStore } from "../../store/useSchedulerStore"
 
 const StaffColumn = ({ staff }) => {
-  const { startHour, endHour, slotHeight, openCreateModalFromGrid, selectedDate } = useSchedulerStore()
+  const { startHour, endHour, slotHeight, openCreateModal, selectedDate } = useSchedulerStore()
   const totalHours = endHour - startHour
   const totalSlots = totalHours * 12 // 12 slots of 5-mins per hour
   const totalHeight = totalSlots * slotHeight
@@ -11,12 +12,13 @@ const StaffColumn = ({ staff }) => {
     const hour = Math.floor(totalMinutes / 60) + startHour
     const minutes = totalMinutes % 60
     const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-    
+    const dateString = format(selectedDate, 'yyyy-MM-dd')
+
     console.log(`Open modal for ${staff.name} at ${timeString}`)
-    openCreateModalFromGrid({
+    openCreateModal({
       staffId: staff.id,
-      date: selectedDate.toISOString().split('T')[0], // format as YYYY-MM-DD
-      startTime: timeString,
+      date: dateString,
+      startTime: timeString
     })
   }
 
