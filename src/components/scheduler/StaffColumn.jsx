@@ -23,7 +23,7 @@ const StaffColumn = ({ staff }) => {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-w-[200px] border-r border-slate-200">
+    <div className="flex flex-col flex-1 min-w-50 border-r border-slate-200">
       <div className="sticky top-0 z-10 h-16 bg-white flex items-center justify-center font-medium shadow-sm">
         {staff.name}
       </div>

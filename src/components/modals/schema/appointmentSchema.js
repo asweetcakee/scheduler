@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 const masterDateTimeSchema = z.object({
   staffId: z.coerce
@@ -107,11 +107,11 @@ const notificationSchema = z.object({
   })
   .refine(
     (n) => !n.remindClient && !n.remindStaff || n.remindBeforeMinutes >= 45,
-    { message: 'Напоминание должно быть установлено минимум за 45 минут до начала', path: ['notificationSettings', 'remindBeforeMinutes'] }
+    { message: 'Напоминание должно быть установлено минимум за 45 минут до начала', path: ['remindBeforeMinutes'] }
   )
   .refine(
     (n) => !n.requestReview || n.reviewAfterMinutes >= 60,
-    { message: 'Запрос отзыва должен быть установлен минимум через час после окончания', path: ['notificationSettings', 'reviewAfterMinutes'] }
+    { message: 'Запрос отзыва должен быть установлен минимум через час после окончания', path: ['reviewAfterMinutes'] }
   )
 })
 

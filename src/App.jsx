@@ -5,7 +5,6 @@ import AppointmentModal from "./components/modals/AppointmentModal"
 const App = () => {
   return(
     <div className="flex h-screen w-full bg-white overflow-hidden">
-            
       <div className="flex flex-1 flex-col h-full overflow-hidden">
         
         <header className="h-16 border-b border-slate-200 bg-white flex items-center px-6">
@@ -20,12 +19,13 @@ const App = () => {
         </main>
 
       </div>
-      <AppointmentModal />
+      
       <aside className="w-64 h-full border-r border-slate-200 bg-slate-50 hidden md:block">
         {/* <Sidebar /> */}
         <div className="p-4 font-bold text-slate-400">Sidebar Placeholder</div>
       </aside>
 
+      <AppointmentModal />
     </div>
   )
 }

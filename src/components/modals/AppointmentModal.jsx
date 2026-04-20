@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { appointmentSchema } from "./schema/appointmentSchema"
 import { useEffect } from "react"
 import { DevTool } from "@hookform/devtools"
+import MasterDateTimeSection from "./sections/section-one/MasterDateTimeSection"
 
 const AppointmentModal = () => {
   const { modal, closeModal } = useSchedulerStore()
@@ -13,11 +14,12 @@ const AppointmentModal = () => {
     defaultValues: modal.seedData
   })  
 
+  // Handles the Grid handshake with modal
   useEffect(() => {
     if (modal.isOpen) {
       methods.reset(modal.seedData)
     }
-  }, [modal.isOpen, modal.seedData, methods.reset])
+  }, [modal.isOpen, modal.seedData])
 
   const onSubmit = (data) => {
     console.log('Form submitted with data:', data)
@@ -41,27 +43,11 @@ const AppointmentModal = () => {
             className="flex-1 overflow-y-auto"
           >
             <div className="px-5 py-4 space-y-6">
-              {/* Test Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Staff ID</label>
-                <input 
-                  {...methods.register("staffId")} 
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                />
-              </div>
-
-              {/* Hidden or visible time input to check the seed */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Start Time</label>
-                <input 
-                  {...methods.register("startTime")} 
-                  className="mt-1 block w-full border border-gray-300 rounded-md p-2"
-                />
-              </div>
+              <MasterDateTimeSection />
             </div>
           </form>
-          <DevTool control={methods.control} /> {/* Remove in production */}
         </FormProvider>
+        <DevTool control={methods.control} /> {/* Remove in production */}
       </div>
     </div>
   )
