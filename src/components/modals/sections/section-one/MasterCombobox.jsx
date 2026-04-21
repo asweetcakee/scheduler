@@ -73,7 +73,7 @@ const MasterCombobox = () => {
       </div>
 
       { open && (
-        <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200
+        <ul className="relative z-50 w-full mt-1 bg-white border border-slate-200
                        rounded-lg shadow-lg max-h-48 overflow-y-auto">
           { filtered.length === 0 ? (
             <li className="px-3 py-2 text-sm text-slate-400">Мастер не найден</li>

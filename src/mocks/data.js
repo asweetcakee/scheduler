@@ -118,3 +118,21 @@ export const mockSlots = Array.from({ length: 204 }, (_, i) => {
   const minutes = (totalMinutes % 60).toString().padStart(2, '0')
   return `${hours}:${minutes}`
 })
+
+export const MOCK_CLIENTS = [
+  { id: 1, name: 'Айгерим Бекова',   phone: '+7 (701) 111-11-11' },
+  { id: 2, name: 'Данияр Сейткали',  phone: '+7 (702) 222-22-22' },
+  { id: 3, name: 'Жанар Омарова',    phone: '+7 (705) 333-33-33' },
+]
+
+// Keyed by clientId for O(1) lookup
+export const MOCK_CLIENT_DISCOUNTS = {
+  1: [
+    { serviceId: 1, discountPercent: 10 },
+    { serviceId: 2, discountPercent: 15 },
+  ],
+  2: [
+    { serviceId: 1, discountPercent: 5 },
+  ],
+  3: [], // no discounts
+}
