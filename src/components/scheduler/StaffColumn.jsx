@@ -1,17 +1,17 @@
 import { format } from "date-fns"
 import { useSchedulerStore } from "../../store/useSchedulerStore"
+import { calculateGridHeight, calculateHeightForMinutes, calculateTotalSlotsForGrid } from "./utils/grid-calculations"
+import { getSlotTime } from "./utils/grid-helper"
 
 const StaffColumn = ({ staff }) => {
   const { startHour, endHour, slotHeight, openCreateModal, selectedDate } = useSchedulerStore()
-  const totalHours = endHour - startHour
-  const totalSlots = totalHours * 12 // 12 slots of 5-mins per hour
-  const totalHeight = totalSlots * slotHeight
+  const totalSlots = calculateTotalSlotsForGrid(startHour, endHour)
+  const totalHeight = calculateGridHeight(totalSlots, slotHeight)
+  const hourHeight = calculateHeightForMinutes(60, slotHeight)
+  const halfHourHeight = calculateHeightForMinutes(30, slotHeight)
 
   const handleSlotClick = (slotIndex) => {
-    const totalMinutes = slotIndex * 5
-    const hour = Math.floor(totalMinutes / 60) + startHour
-    const minutes = totalMinutes % 60
-    const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+    const timeString = getSlotTime(slotIndex, startHour)
     const dateString = format(selectedDate, 'yyyy-MM-dd')
 
     console.log(`Open modal for ${staff.name} at ${timeString}`)
@@ -36,7 +36,7 @@ const StaffColumn = ({ staff }) => {
             linear-gradient(to bottom, #e2e8f0 1px, transparent 1px),
             linear-gradient(to bottom, #f1f5f9 1px, transparent 1px)
           `,
-          backgroundSize: `100% ${slotHeight * 12}px, 100% ${slotHeight * 6}px`,
+          backgroundSize: `100% ${hourHeight}px, 100% ${halfHourHeight}px`,
           backgroundPosition: '0 0px'
         }}
       >

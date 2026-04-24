@@ -1,15 +1,13 @@
 import { useSchedulerStore } from "../../store/useSchedulerStore"
+import { getHourToMinutesFormat } from "../../utils/formatting"
+import { calculateDisplaySlotHeight, calculateTotalSlotsForDisplay } from "./utils/grid-calculations"
+import { generateDisplaySlots } from "./utils/grid-helper"
 
 const TimeColumn = () => {
   const { slotHeight, startHour, endHour } = useSchedulerStore()
-
-  const totalSlots = (endHour - startHour) * 4 // 15 min intervals
-  const slots = Array.from({ length: totalSlots }, (_, i) => {
-    const totalMinutes = i * 15
-    const hour = Math.floor(totalMinutes / 60) + startHour
-    const minutes = totalMinutes % 60
-    return `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
-  })
+  const totalSlots = calculateTotalSlotsForDisplay(startHour, endHour)
+  const slots = generateDisplaySlots(totalSlots, startHour)
+  const displayUnitHeight = calculateDisplaySlotHeight(slotHeight)
 
   return (
     <div className="w-20 bg-slate-50 border-r border-slate-200">
@@ -21,7 +19,7 @@ const TimeColumn = () => {
         return (
           <div 
             key={index}
-            style={{ height: `${slotHeight * 3}px` }} 
+            style={{ height: `${displayUnitHeight}px` }} 
             className={`border-slate-200 flex justify-end pr-2 select-none
               ${isFullHour ? 'border-t' : isHalfHour ? 'border-t border-dashed' : 'border-none'}
             `}
