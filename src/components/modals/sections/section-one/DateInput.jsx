@@ -1,6 +1,6 @@
-import { useFormContext } from "react-hook-form"
-import FormLabel from "../../../ui/FormLabel"
-import FormFieldError from "../../../ui/FormFieldError"
+import { useFormContext } from 'react-hook-form'
+import FormLabel from '../../../ui/FormLabel'
+import FormFieldError from '../../../ui/FormFieldError'
 
 const DateInput = () => {
   const { trigger, register, formState: { errors } } = useFormContext()

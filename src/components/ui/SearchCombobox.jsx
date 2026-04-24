@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import FormLabel from './FormLabel'
 import { useClickOutside } from './hooks/useClickOutside'
@@ -10,7 +10,7 @@ const SearchCombobox = ({
 
   // Data
   items,              // [{ id, label, sublabel }]
-  
+
   // Display
   label,
   placeholder,
@@ -30,11 +30,11 @@ const SearchCombobox = ({
 
   const filteredItems = query.trim() === ''
     ? items
-    : items.filter(i => 
+    : items.filter(i =>
       i.label.toLowerCase().includes(query.toLowerCase()) ||
       i.sublabel?.toLowerCase().includes(query)
     )
-  
+
   const handleSelect = (item) => {
     onChange(item)
     setQuery('')
@@ -45,7 +45,7 @@ const SearchCombobox = ({
     e.stopPropagation()
     onChange(null)
   }
-  
+
   const hasNoItems = filteredItems.length === 0
   const renderItems = () => {
     return filteredItems.map(item => (
@@ -54,9 +54,9 @@ const SearchCombobox = ({
         onClick={() => handleSelect(item)}
         className={`px-3 py-2 text-sm cursor-pointer hover:bg-slate-50
           ${item.id === value
-            ? 'bg-blue-50 text-blue-700 font-medium'
-            : 'text-slate-700'
-          }`}
+        ? 'bg-blue-50 text-blue-700 font-medium'
+        : 'text-slate-700'
+      }`}
       >
         <span>{item.label}</span>
         {item.sublabel && (
@@ -110,7 +110,7 @@ const SearchCombobox = ({
       {open && (
         <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200
                        rounded-lg shadow-lg max-h-52 overflow-y-auto">
-          {hasNoItems 
+          {hasNoItems
             ? <li className="px-3 py-2 text-sm text-slate-400">{notFoundText}</li>
             : renderItems()
           }

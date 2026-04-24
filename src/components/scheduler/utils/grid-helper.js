@@ -1,6 +1,6 @@
-import { getHourToMinutesFormat } from "../../../utils/formatting"
-import { calculateSlotTime } from "./grid-calculations"
-import { DISPLAY_RESOLUTION_MIN, GRID_RESOLUTION_MIN } from "./time-config"
+import { getHourToMinutesFormat } from '../../../utils/formatting'
+import { calculateSlotTime } from './grid-calculations'
+import { DISPLAY_RESOLUTION_MIN, GRID_RESOLUTION_MIN } from './time-config'
 
 export const getSlotTime = (slotIndex, startHour) => {
   const { hour, minutes } = calculateSlotTime(slotIndex, startHour, GRID_RESOLUTION_MIN)
@@ -14,5 +14,5 @@ const generateSlots = (totalSlots, startHour, minutesPerSlot) => {
   })
 }
 
-export const generateDisplaySlots = (totalSlots, startHour) => 
+export const generateDisplaySlots = (totalSlots, startHour) =>
   generateSlots(totalSlots, startHour, DISPLAY_RESOLUTION_MIN)

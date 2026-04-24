@@ -1,13 +1,13 @@
-import { useAvailableSlots } from "../../hooks/useAvailableSlots"
-import MasterCombobox from "./MasterCombobox"
-import DateInput from "./DateInput"
-import TimeSlotDropdown from "./TimeSlotDropdown"
-import EndTime from "./EndTime"
+import { useAvailableSlots } from '../../hooks/useAvailableSlots'
+import MasterCombobox from './MasterCombobox'
+import DateInput from './DateInput'
+import TimeSlotDropdown from './TimeSlotDropdown'
+import EndTime from './EndTime'
 
-const MasterDateTimeSection = () => {  
+const MasterDateTimeSection = () => {
   // activates the watch -> fetch -> setAvailableSlots pipeline
   useAvailableSlots()
-  
+
   return (
     <section>
       <div className="flex items-center justify-center">

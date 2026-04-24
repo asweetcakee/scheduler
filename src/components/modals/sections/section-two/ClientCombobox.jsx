@@ -1,11 +1,11 @@
-import { useFormContext } from "react-hook-form"
-import { MOCK_CLIENTS } from "../../../../mocks/data"
-import { useState } from "react"
+import { useFormContext } from 'react-hook-form'
+import { MOCK_CLIENTS } from '../../../../mocks/data'
+import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
-import SearchCombobox from "../../../ui/SearchCombobox"
+import SearchCombobox from '../../../ui/SearchCombobox'
 import CreateClientModal from '../sub-modals/CreateClientModal'
-import FormFieldError from "../../../ui/FormFieldError"
-import { transformClientsForCombobox } from "../../utils/modal-adapters"
+import FormFieldError from '../../../ui/FormFieldError'
+import { transformClientsForCombobox } from '../../utils/modal-adapters'
 
 const clientItems = transformClientsForCombobox(MOCK_CLIENTS)
 

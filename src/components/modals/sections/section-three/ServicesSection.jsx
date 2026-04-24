@@ -16,7 +16,7 @@ const EMPTY_SERVICE = {
 const ServicesSection = () => {
   const { control, formState: { errors } } = useFormContext()
 
-  // Lives here because both its triggers (startTime + services.duration) 
+  // Lives here because both its triggers (startTime + services.duration)
   // are readable from this subtree — section-three owns the services,
   // startTime is watched cross-section via useFormContext
   useEndTimeCalculation()
@@ -42,7 +42,7 @@ const ServicesSection = () => {
           Добавить услугу
         </button>
       </div>
-      
+
       <div className="space-y-2">
         {fields.map((field, index) => (
           <ServiceRow

@@ -1,7 +1,6 @@
-import { useSchedulerStore } from "../../store/useSchedulerStore"
-import { getHourToMinutesFormat } from "../../utils/formatting"
-import { calculateDisplaySlotHeight, calculateTotalSlotsForDisplay } from "./utils/grid-calculations"
-import { generateDisplaySlots } from "./utils/grid-helper"
+import { useSchedulerStore } from '../../store/useSchedulerStore'
+import { calculateDisplaySlotHeight, calculateTotalSlotsForDisplay } from './utils/grid-calculations'
+import { generateDisplaySlots } from './utils/grid-helper'
 
 const TimeColumn = () => {
   const { slotHeight, startHour, endHour } = useSchedulerStore()
@@ -17,9 +16,9 @@ const TimeColumn = () => {
         const isHalfHour = minutes === '30'
 
         return (
-          <div 
+          <div
             key={index}
-            style={{ height: `${displayUnitHeight}px` }} 
+            style={{ height: `${displayUnitHeight}px` }}
             className={`border-slate-200 flex justify-end pr-2 select-none
               ${isFullHour ? 'border-t' : isHalfHour ? 'border-t border-dashed' : 'border-none'}
             `}

@@ -4,7 +4,7 @@ import { format } from 'date-fns'
 
 const DatePicker = () => {
   const { selectedDate, goToNextDay, goToPreviousDay } = useSchedulerStore()
-  
+
   return(
     <div className="flex items-center gap-4">
       <button onClick={goToPreviousDay} className="p-2 hover:bg-slate-100 rounded">

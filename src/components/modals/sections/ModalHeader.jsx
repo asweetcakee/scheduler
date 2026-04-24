@@ -1,5 +1,5 @@
-import { X } from "lucide-react"
-import { useSchedulerStore } from "../../../store/useSchedulerStore"
+import { X } from 'lucide-react'
+import { useSchedulerStore } from '../../../store/useSchedulerStore'
 
 const ModalHeader = ({ mode }) => {
   const { closeModal } = useSchedulerStore()

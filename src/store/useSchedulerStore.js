@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import { startOfToday, subDays, addDays } from "date-fns"
+import { startOfToday, subDays, addDays } from 'date-fns'
 
 const DEFAULT_SEED = {
   id: null,
   staffId: null,
-  date: '', 
+  date: '',
   startTime: '',
   endTime: '',  // read-only calculated from startTime + services duration
   services: [
@@ -22,7 +22,7 @@ const DEFAULT_SEED = {
   clientName: '',
   clientPhone: '',
   appointmentStatus: 'scheduled', // 'scheduled', 'completed', 'canceled'
-  
+
   // For future use when we implement notifications
   notificationSettings: {
     // Reminder 1 pre-appointment, sent to client and/or staff
@@ -31,19 +31,19 @@ const DEFAULT_SEED = {
     remindBeforeMinutes: 60,
 
     // Reminder 2 post-appointment review request, client only
-    requestReview: false, 
-    reviewAfterMinutes: 60, 
+    requestReview: false,
+    reviewAfterMinutes: 60,
   },
 
   adminNotes: '', // for internal use, not visible to clients,
   appointmentColor: '#60f63b'
 }
 
-export const useSchedulerStore = create(devtools((set, get) => ({
+export const useSchedulerStore = create(devtools((set) => ({
   // Global state for the scheduler app
   selectedDate: startOfToday(),
   viewMode: 'day', // 'day', 'week', 'list'
-    
+
   // Time range and slot settings for TimeColumn and StaffColumn
   startHour: 7,
   endHour: 24,
@@ -126,7 +126,7 @@ export const useSchedulerStore = create(devtools((set, get) => ({
   setIsFetchingSlots: (bool) => set(s => ({ modalRuntime: { ...s.modalRuntime, isFetchingSlots: bool } })),
   setClientDiscounts: (discounts) => set(s => ({ modalRuntime: { ...s.modalRuntime, clientDiscounts: discounts } })),
   setIsFetchingDiscounts: (bool) => set(s => ({ modalRuntime: { ...s.modalRuntime, isFetchingDiscounts: bool } })),
-  
+
   // TimeColumn and StaffColumn settings
   setStartHour: (hour) => set({ startHour: hour }),
   setEndHour: (hour) => set({ endHour: hour }),

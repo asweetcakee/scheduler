@@ -1,4 +1,4 @@
-import { MIN_PER_HOUR, GRID_RESOLUTION_MIN, DISPLAY_RESOLUTION_MIN } from "./time-config"
+import { MIN_PER_HOUR, GRID_RESOLUTION_MIN, DISPLAY_RESOLUTION_MIN } from './time-config'
 
 const calculateSlotsPerHour = (minutesPerSlot) => {
   if (MIN_PER_HOUR % minutesPerSlot !== 0) {
@@ -13,10 +13,10 @@ const calculateTotalSlots = (startHour, endHour, minutesPerSlot) => {
   return totalHours * calculateSlotsPerHour(minutesPerSlot)
 }
 
-export const calculateTotalSlotsForGrid = (startHour, endHour) => 
+export const calculateTotalSlotsForGrid = (startHour, endHour) =>
   calculateTotalSlots(startHour, endHour, GRID_RESOLUTION_MIN)
 
-export const calculateTotalSlotsForDisplay = (startHour, endHour) => 
+export const calculateTotalSlotsForDisplay = (startHour, endHour) =>
   calculateTotalSlots(startHour, endHour, DISPLAY_RESOLUTION_MIN)
 
 export const calculateGridHeight = (totalSlots, slotHeight) => {
@@ -27,7 +27,7 @@ export const calculateSlotTime = (slotIndex, startHour, minutesPerSlot) => {
   const totalMinutes = slotIndex * minutesPerSlot
   const hour = Math.floor(totalMinutes / MIN_PER_HOUR) + startHour
   const minutes = totalMinutes % MIN_PER_HOUR
-  
+
   return { hour, minutes }
 }
 

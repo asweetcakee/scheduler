@@ -1,26 +1,26 @@
-import { FormProvider, useForm } from "react-hook-form"
-import { useSchedulerStore } from "../../store/useSchedulerStore"
-import ModalHeader from "./sections/ModalHeader"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { appointmentSchema } from "./schema/appointmentSchema"
-import { useEffect } from "react"
-import { DevTool } from "@hookform/devtools"
-import MasterDateTimeSection from "./sections/section-one/MasterDateTimeSection"
-import ClientInfoSection from "./sections/section-two/ClientInfoSection"
-import ServicesSection from "./sections/section-three/ServicesSection"
+import { FormProvider, useForm } from 'react-hook-form'
+import { useSchedulerStore } from '../../store/useSchedulerStore'
+import ModalHeader from './sections/ModalHeader'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { appointmentSchema } from './schema/appointmentSchema'
+import { useEffect } from 'react'
+import { DevTool } from '@hookform/devtools'
+import MasterDateTimeSection from './sections/section-one/MasterDateTimeSection'
+import ClientInfoSection from './sections/section-two/ClientInfoSection'
+import ServicesSection from './sections/section-three/ServicesSection'
 
 const AppointmentModal = () => {
   const { modal, closeModal } = useSchedulerStore()
   const methods = useForm({
     resolver: zodResolver(appointmentSchema),
     defaultValues: modal.seedData
-  })  
+  })
 
   // Handles the Grid handshake with modal
   useEffect(() => {
     if (modal.isOpen) {
       methods.reset(modal.seedData)
-      console.log("form values after reset:", methods.getValues())
+      console.log('form values after reset:', methods.getValues())
     }
   }, [modal.isOpen, modal.seedData])
 

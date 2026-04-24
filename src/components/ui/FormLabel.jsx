@@ -1,9 +1,9 @@
-const FormLabel = ({ 
+const FormLabel = ({
   children,
   variant = 'default',
   className = '',
   ...props
- }) => {
+}) => {
   const styles = {
     default: 'text-sm font-medium text-slate-700',
     compact: 'text-xs font-normal text-slate-500'
@@ -13,7 +13,7 @@ const FormLabel = ({
   const variantClasses = styles[variant] || styles.default
 
   return (
-    <label 
+    <label
       className={`${baseClasses} ${variantClasses} ${className}`}
       {...props}
     >

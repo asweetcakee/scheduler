@@ -198,7 +198,7 @@ const ServiceRow = ({ index, onRemove, canRemove }) => {
         </div>
 
       </div>
-      
+
       <FormFieldError error={rowErrors?.serviceId}/>
     </div>
   )

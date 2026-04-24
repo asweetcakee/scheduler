@@ -1,7 +1,7 @@
-import { useFormContext, Controller } from "react-hook-form"
-import { useSchedulerStore } from "../../../../store/useSchedulerStore"
+import { useFormContext, Controller } from 'react-hook-form'
+import { useSchedulerStore } from '../../../../store/useSchedulerStore'
 import FormFieldError from '../../../ui/FormFieldError'
-import FormLabel from "../../../ui/FormLabel"
+import FormLabel from '../../../ui/FormLabel'
 
 const SELECT_CLASSES = `w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
                        focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white
@@ -23,13 +23,13 @@ const TimeSlotDropdown = () => {
 
   const renderTimeSelect = ({ field }) => (
     <select {...field} disabled={isDisabled} className={SELECT_CLASSES}>
-            
+
       <option value=""> {placeholderText} </option>
-      
+
       {availableSlots.map(slot => (
         <option key={slot} value={slot}>{slot}</option>
       ))}
-    
+
     </select>
   )
 

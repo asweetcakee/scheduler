@@ -25,63 +25,63 @@ export const MOCK_STAFF_SM = [
 export const MOCK_APPOINTMENTS = []
 
 export const MOCK_INITIAL_ZUSTAND_STATE = {
-  "selectedDate": "2026-04-20T00:00:00.000Z",
-  "viewMode": "day",
-  "startHour": 7,
-  "endHour": 24,
-  "slotHeight": 20,
-  "modal": {
-    "isOpen": false,
-    "mode": "create",
-    "originalData": null,
-    "seedData": {
-      "id": null,
-      "staffId": null,
-      "date": "",
-      "startTime": "",
-      "endTime": "",
-      "services": [
+  'selectedDate': '2026-04-20T00:00:00.000Z',
+  'viewMode': 'day',
+  'startHour': 7,
+  'endHour': 24,
+  'slotHeight': 20,
+  'modal': {
+    'isOpen': false,
+    'mode': 'create',
+    'originalData': null,
+    'seedData': {
+      'id': null,
+      'staffId': null,
+      'date': '',
+      'startTime': '',
+      'endTime': '',
+      'services': [
         {
-          "serviceId": null,
-          "duration": 0,
-          "priceSnapshot": 0,
-          "discountPercent": 0,
-          "discountValue": 0,
-          "total": 0
+          'serviceId': null,
+          'duration': 0,
+          'priceSnapshot': 0,
+          'discountPercent': 0,
+          'discountValue': 0,
+          'total': 0
         }
       ],
-      "clientId": null,
-      "clientName": "",
-      "clientPhone": "",
-      "appointmentStatus": "scheduled",
-      "notificationSettings": {
-        "remindClient": false,
-        "remindStaff": false,
-        "remindBeforeMinutes": 60,
-        "requestReview": false,
-        "reviewAfterMinutes": 60
+      'clientId': null,
+      'clientName': '',
+      'clientPhone': '',
+      'appointmentStatus': 'scheduled',
+      'notificationSettings': {
+        'remindClient': false,
+        'remindStaff': false,
+        'remindBeforeMinutes': 60,
+        'requestReview': false,
+        'reviewAfterMinutes': 60
       },
-      "adminNotes": "",
-      "appointmentColor": "#60f63b"
+      'adminNotes': '',
+      'appointmentColor': '#60f63b'
     }
   },
-  "modalRuntime": {
-    "clientDiscounts": [],
-    "availableSlots": [],
-    "isFetchingSlots": false,
-    "isFetchingDiscounts": false
+  'modalRuntime': {
+    'clientDiscounts': [],
+    'availableSlots': [],
+    'isFetchingSlots': false,
+    'isFetchingDiscounts': false
   }
 }
 
 export const MOCK_APPOINTMENT = {
-  id: "apt-789",
-  staffId: "staff-01",
-  date: "2026-04-20",
-  startTime: "09:30",
-  endTime: "10:30", // Calculated (60 mins total)
+  id: 'apt-789',
+  staffId: 'staff-01',
+  date: '2026-04-20',
+  startTime: '09:30',
+  endTime: '10:30', // Calculated (60 mins total)
   services: [
     {
-      serviceId: "srv-001",
+      serviceId: 'srv-001',
       duration: 45,
       priceSnapshot: 80.00,
       discountPercent: 10,
@@ -89,7 +89,7 @@ export const MOCK_APPOINTMENT = {
       total: 72.00
     },
     {
-      serviceId: "srv-002",
+      serviceId: 'srv-002',
       duration: 15,
       priceSnapshot: 20.00,
       discountPercent: 0,
@@ -97,10 +97,10 @@ export const MOCK_APPOINTMENT = {
       total: 20.00
     }
   ],
-  clientId: "client-456",
-  clientName: "Jane Doe",
-  clientPhone: "+7777-666-77-88",
-  appointmentStatus: "scheduled",
+  clientId: 'client-456',
+  clientName: 'Jane Doe',
+  clientPhone: '+7777-666-77-88',
+  appointmentStatus: 'scheduled',
   notificationSettings: {
     remindClient: true,
     remindStaff: false,
@@ -108,8 +108,8 @@ export const MOCK_APPOINTMENT = {
     requestReview: true,
     reviewAfterMinutes: 1440 // 24 hours later
   },
-  adminNotes: "Client requested a window seat if possible.",
-  appointmentColor: "#3b82f6"
+  adminNotes: 'Client requested a window seat if possible.',
+  appointmentColor: '#3b82f6'
 }
 
 export const mockSlots = Array.from({ length: 204 }, (_, i) => {

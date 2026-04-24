@@ -1,7 +1,7 @@
-import { format } from "date-fns"
-import { useSchedulerStore } from "../../store/useSchedulerStore"
-import { calculateGridHeight, calculateHeightForMinutes, calculateTotalSlotsForGrid } from "./utils/grid-calculations"
-import { getSlotTime } from "./utils/grid-helper"
+import { format } from 'date-fns'
+import { useSchedulerStore } from '../../store/useSchedulerStore'
+import { calculateGridHeight, calculateHeightForMinutes, calculateTotalSlotsForGrid } from './utils/grid-calculations'
+import { getSlotTime } from './utils/grid-helper'
 
 const StaffColumn = ({ staff }) => {
   const { startHour, endHour, slotHeight, openCreateModal, selectedDate } = useSchedulerStore()
@@ -28,7 +28,7 @@ const StaffColumn = ({ staff }) => {
         {staff.name}
       </div>
 
-      <div 
+      <div
         className="relative w-full bg-white group"
         style={{
           height: `${totalHeight}px`,

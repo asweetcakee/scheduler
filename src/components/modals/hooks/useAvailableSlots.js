@@ -1,14 +1,14 @@
-import { useFormContext } from "react-hook-form"
-import { useSchedulerStore } from "../../../store/useSchedulerStore"
-import { useEffect } from "react"
-import { mockSlots } from "../../../mocks/data" // TODO: remove after wiring with API call
+import { useFormContext } from 'react-hook-form'
+import { useSchedulerStore } from '../../../store/useSchedulerStore'
+import { useEffect } from 'react'
+import { mockSlots } from '../../../mocks/data' // TODO: remove after wiring with API call
 
 export const useAvailableSlots = () => {
   const { watch } = useFormContext()
   const { setAvailableSlots, setIsFetchingSlots } = useSchedulerStore()
 
   const staffId = watch('staffId')
-  const date = watch('date') 
+  const date = watch('date')
 
   useEffect(() => {
     if (!staffId || !date) return

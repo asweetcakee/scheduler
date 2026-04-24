@@ -1,6 +1,5 @@
 import { createPortal } from 'react-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { createStaffSchema } from '../../schema/appointmentSchema'
@@ -24,7 +23,7 @@ const CreateStaffModal = ({ onClose, onCreated }) => {
     }
     onCreated(newStaff)
   }
-  
+
   const content = (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40"
@@ -56,7 +55,7 @@ const CreateStaffModal = ({ onClose, onCreated }) => {
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg
                         focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            {errors.name && (             
+            {errors.name && (
               <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
             )}
           </div>

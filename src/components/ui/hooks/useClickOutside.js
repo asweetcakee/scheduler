@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from 'react'
 
 export const useClickOutside = (ref, callback) => {
   const callbackRef = useRef(callback)

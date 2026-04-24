@@ -1,8 +1,8 @@
-import { useFormContext } from "react-hook-form"
-import FormLabel from "../../../ui/FormLabel"
+import { useFormContext } from 'react-hook-form'
+import FormLabel from '../../../ui/FormLabel'
 
 const EndTime = () => {
-  const { register, formState: { errors } } = useFormContext()
+  const { register } = useFormContext()
   return (
     <div>
       <FormLabel>Конец</FormLabel>

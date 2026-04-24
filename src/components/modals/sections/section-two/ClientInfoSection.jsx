@@ -3,7 +3,7 @@ import ClientCombobox from './ClientCombobox'
 
 const ClientInfoSection = () => {
   useClientDiscounts()
-  
+
   return (
     <section>
       <ClientCombobox />
