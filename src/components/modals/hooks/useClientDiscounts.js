@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useFormContext } from 'react-hook-form'
-import { useSchedulerStore } from '../../store/useSchedulerStore'
-import { MOCK_CLIENT_DISCOUNTS } from '../../mocks/data'
+import { useSchedulerStore } from '../../../store/useSchedulerStore'
+import { MOCK_CLIENT_DISCOUNTS } from '../../../mocks/data'
 
 export const useClientDiscounts = () => {
   const { watch, setValue, getValues } = useFormContext()

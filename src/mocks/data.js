@@ -1,6 +1,6 @@
 export const MOCK_STAFF_MD = [
   { id: 1, name: 'Aibar Orazaev' },
-  { id: 2, name: 'Marina Nurgalieva' },
+  { id: 2, name: 'Marina Nurgalieva', role: 'nails master' },
   { id: 3, name: 'Dmitry Volkov' },
   { id: 4, name: 'Svetlana Petrova' },
   { id: 5, name: 'Alexey Smirnov' },
@@ -125,7 +125,6 @@ export const MOCK_CLIENTS = [
   { id: 3, name: 'Жанар Омарова',    phone: '+7 (705) 333-33-33' },
 ]
 
-// Keyed by clientId for O(1) lookup
 export const MOCK_CLIENT_DISCOUNTS = {
   1: [
     { serviceId: 1, discountPercent: 10 },
@@ -134,5 +133,14 @@ export const MOCK_CLIENT_DISCOUNTS = {
   2: [
     { serviceId: 1, discountPercent: 5 },
   ],
-  3: [], // no discounts
+  3: [],
 }
+
+export const MOCK_SERVICES = [
+  { id: 1, name: 'Стрижка',         duration: 30,  price: 5000  },
+  { id: 2, name: 'Окрашивание',     duration: 120, price: 15000 },
+  { id: 3, name: 'Маникюр',         duration: 60,  price: 7000  },
+  { id: 4, name: 'Педикюр',         duration: 75,  price: 8000  },
+  { id: 5, name: 'Массаж',          duration: 60,  price: 10000 },
+  { id: 6, name: 'Укладка',         duration: 45,  price: 4000  },
+]

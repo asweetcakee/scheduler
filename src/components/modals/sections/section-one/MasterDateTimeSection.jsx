@@ -1,4 +1,4 @@
-import { useAvailableSlots } from "../../../hooks/useAvailableSlots"
+import { useAvailableSlots } from "../../hooks/useAvailableSlots"
 import MasterCombobox from "./MasterCombobox"
 import DateInput from "./DateInput"
 import TimeSlotDropdown from "./TimeSlotDropdown"

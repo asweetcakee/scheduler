@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod"
 
 const masterDateTimeSchema = z.object({
   staffId: z.coerce
@@ -127,6 +127,18 @@ const appointmentMetaSchema = z.object({
   
   appointmentColor: z.string()
     .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Цвет должен быть в формате HEX, например #ff0000')
+})
+
+export const createStaffSchema = z.object({
+  name: z.string().min(2, 'Введите имя мастера').max(100),
+  role: z.string().min(5, 'Введите должность мастера').max(100)
+})
+
+export const createClientSchema = z.object({
+  name: z.string().min(2, 'Введите имя клиента').max(100),
+  phone: z.string()
+    .min(1, 'Введите номер телефона')
+    .regex(/^[\d\s\+\-\(\)]{7,20}$/, 'Введите корректный номер'),
 })
 
 export const appointmentSchema = masterDateTimeSchema

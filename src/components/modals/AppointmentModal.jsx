@@ -6,7 +6,8 @@ import { appointmentSchema } from "./schema/appointmentSchema"
 import { useEffect } from "react"
 import { DevTool } from "@hookform/devtools"
 import MasterDateTimeSection from "./sections/section-one/MasterDateTimeSection"
-import ClientSection from "./sections/section-two/ClientSection"
+import ClientInfoSection from "./sections/section-two/ClientInfoSection"
+import ServicesSection from "./sections/section-three/ServicesSection"
 
 const AppointmentModal = () => {
   const { modal, closeModal } = useSchedulerStore()
@@ -48,7 +49,8 @@ const AppointmentModal = () => {
           >
             <div className="px-5 py-4 space-y-6">
               <MasterDateTimeSection />
-              <ClientSection />
+              <ClientInfoSection />
+              <ServicesSection />
             </div>
           </form>
         </FormProvider>

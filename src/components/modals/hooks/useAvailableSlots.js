@@ -1,7 +1,7 @@
 import { useFormContext } from "react-hook-form"
-import { useSchedulerStore } from "../../store/useSchedulerStore"
+import { useSchedulerStore } from "../../../store/useSchedulerStore"
 import { useEffect } from "react"
-import { mockSlots } from "../../mocks/data" // TODO: remove after wiring with API call
+import { mockSlots } from "../../../mocks/data" // TODO: remove after wiring with API call
 
 export const useAvailableSlots = () => {
   const { watch } = useFormContext()
@@ -19,7 +19,6 @@ export const useAvailableSlots = () => {
         // TODO: replace with real API call
 
         const slots = mockSlots
-        console.log('slots: ', slots)
         setAvailableSlots(slots)
 
       } finally {
