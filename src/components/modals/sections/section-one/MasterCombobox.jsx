@@ -5,12 +5,11 @@ import SearchCombobox from '../../../ui/SearchCombobox'
 import CreateStaffModal from '../sub-modals/CreateStaffModal'
 import { useSchedulerStore } from '../../../../store/useSchedulerStore'
 import { MOCK_STAFF_MD } from '../../../../mocks/data'
+import { transformStaffForCombobox } from '../../utils/modal-adapters'
+import { resetStartTimeOnMasterChange } from '../../utils/modal-helpers'
+import FormFieldError from '../../../ui/FormFieldError'
 
-const staffItems = MOCK_STAFF_MD.map(s => ({
-  id: s.id,
-  label: s.name,
-  sublabel: s.role ?? undefined,
-}))
+const staffItems = transformStaffForCombobox(MOCK_STAFF_MD)
 
 const MasterCombobox = () => {
   const { setValue, watch, formState: { errors } } = useFormContext()
@@ -20,14 +19,16 @@ const MasterCombobox = () => {
   const staffId = watch('staffId')
 
   const handleChange = (staff) => {
+    if (!staff) {
+      handleClear()
+      return
+    }
+
     setValue('staffId', staff.id, { shouldValidate: true })
 
     // Restore seed startTime if reverting to original master
-    if (staff.id === modal.seedData.staffId && modal.seedData.startTime) {
-      setValue('startTime', modal.seedData.startTime)
-    } else {
-      setValue('startTime', '')
-    }
+    const newTime = resetStartTimeOnMasterChange(staff.id, modal.seedData)
+    setValue('startTime', newTime, { shouldValidate: true })
   }
 
   const handleClear = () => {
@@ -46,7 +47,6 @@ const MasterCombobox = () => {
       <SearchCombobox
         value={staffId}
         onChange={handleChange}
-        onClear={handleClear}
         items={staffItems}
         label="Мастер"
         placeholder="Поиск мастера..."
@@ -55,9 +55,7 @@ const MasterCombobox = () => {
         createLabel="Добавить мастера"
         CreateIcon={UserPlus}
       />
-      {errors.staffId && (
-        <p className="mt-1 text-xs text-red-500">{errors.staffId.message}</p>
-      )}
+      <FormFieldError error={errors?.staffId}/>
 
       {showCreate && (
         <CreateStaffModal

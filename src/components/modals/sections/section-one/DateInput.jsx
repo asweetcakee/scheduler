@@ -1,12 +1,12 @@
 import { useFormContext } from "react-hook-form"
+import FormLabel from "../../../ui/FormLabel"
+import FormFieldError from "../../../ui/FormFieldError"
 
 const DateInput = () => {
   const { trigger, register, formState: { errors } } = useFormContext()
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
-        Дата
-      </label>
+      <FormLabel>Дата</FormLabel>
       <input
         {...register('date')}
         type="date"
@@ -14,9 +14,7 @@ const DateInput = () => {
                     focus:outline-none focus:ring-2 focus:ring-blue-500"
         onBlur={() => trigger('date')}
       />
-      {errors.date && (
-        <p className="mt-1 text-xs text-red-500">{errors.date.message}</p>
-      )}
+      <FormFieldError error={errors?.date}/>
     </div>
   )
 }

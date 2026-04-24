@@ -3,6 +3,7 @@ import { Trash2 } from 'lucide-react'
 import SearchCombobox from '../../../ui/SearchCombobox'
 import { useSchedulerStore } from '../../../../store/useSchedulerStore'
 import { MOCK_SERVICES } from '../../../../mocks/data'
+import FormFieldError from '../../../ui/FormFieldError'
 
 // 5-min increments up to 8 hours (480 min)
 const DURATION_OPTIONS = Array.from({ length: 96 }, (_, i) => {
@@ -197,10 +198,8 @@ const ServiceRow = ({ index, onRemove, canRemove }) => {
         </div>
 
       </div>
-
-      {rowErrors?.serviceId && (
-        <p className="text-xs text-red-500">{rowErrors.serviceId.message}</p>
-      )}
+      
+      <FormFieldError error={rowErrors?.serviceId}/>
     </div>
   )
 }

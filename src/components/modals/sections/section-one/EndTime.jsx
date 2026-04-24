@@ -1,12 +1,11 @@
 import { useFormContext } from "react-hook-form"
+import FormLabel from "../../../ui/FormLabel"
 
 const EndTime = () => {
   const { register, formState: { errors } } = useFormContext()
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
-        Конец
-      </label>
+      <FormLabel>Конец</FormLabel>
       <input
         {...register('endTime')}
         type="text"

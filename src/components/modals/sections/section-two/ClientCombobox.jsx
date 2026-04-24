@@ -4,13 +4,10 @@ import { useState } from "react"
 import { UserPlus } from 'lucide-react'
 import SearchCombobox from "../../../ui/SearchCombobox"
 import CreateClientModal from '../sub-modals/CreateClientModal'
+import FormFieldError from "../../../ui/FormFieldError"
+import { transformClientsForCombobox } from "../../utils/modal-adapters"
 
-
-const clientItems = MOCK_CLIENTS.map(i => ({
-  id: i.id,
-  label: i.name,
-  sublabel: i.phone ?? undefined
-}))
+const clientItems = transformClientsForCombobox(MOCK_CLIENTS)
 
 const ClientCombobox = () => {
   const { setValue, watch, formState: { errors } } = useFormContext()
@@ -19,6 +16,11 @@ const ClientCombobox = () => {
   const clientId = watch('clientId')
 
   const handleChange = (client) => {
+    if (!client) {
+      handleClear()
+      return
+    }
+
     setValue('clientId', client.id, { shouldValidate: true })
     setValue('clientName', client.label)
     setValue('clientPhone', client.sublabel ?? '')
@@ -33,6 +35,7 @@ const ClientCombobox = () => {
   const handleCreated = (newClient) => {
     setShowCreate(false)
     handleChange({ id: newClient.id, label: newClient.name, sublabel: newClient.phone })
+    console.log('new client: ', newClient)
   }
 
   return (
@@ -40,7 +43,6 @@ const ClientCombobox = () => {
       <SearchCombobox
         value={clientId}
         onChange={handleChange}
-        onClear={handleClear}
         items={clientItems}
         label="Клиент"
         placeholder="Поиск по имени или телефону"
@@ -49,9 +51,7 @@ const ClientCombobox = () => {
         createLabel="Создать нового клиента"
         CreateIcon={UserPlus}
       />
-      {errors.clientName && (
-        <p className="mt-1 text-xs text-red-500">{errors.clientName.message}</p>
-      )}
+      <FormFieldError error={errors?.clientName}/>
 
       {showCreate && (
         <CreateClientModal

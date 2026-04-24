@@ -18,8 +18,6 @@ const AppointmentModal = () => {
 
   // Handles the Grid handshake with modal
   useEffect(() => {
-    console.log("AM - useEffect, modal:", modal)
-    console.log("form values before reset:", methods.getValues())
     if (modal.isOpen) {
       methods.reset(modal.seedData)
       console.log("form values after reset:", methods.getValues())
