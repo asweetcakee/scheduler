@@ -8,7 +8,7 @@ const SELECT_CLASSES = `w-full px-3 py-2 text-sm border border-slate-200 rounded
                        disabled:bg-slate-50 disabled:text-slate-400`
 
 const TimeSlotDropdown = () => {
-  const { control, formState: { errors } } = useFormContext()
+  const { control, trigger, formState: { errors } } = useFormContext()
   const { modalRuntime } = useSchedulerStore()
   const { availableSlots, isFetchingSlots } = modalRuntime
 
@@ -22,7 +22,7 @@ const TimeSlotDropdown = () => {
       : 'Выберите время'
 
   const renderTimeSelect = ({ field }) => (
-    <select {...field} disabled={isDisabled} className={SELECT_CLASSES}>
+    <select {...field} disabled={isDisabled} className={SELECT_CLASSES} onChange={(e) => { field.onChange(e); trigger('startTime')}}>
 
       <option value=""> {placeholderText} </option>
 

@@ -1,7 +1,26 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
 import { ChevronDown, X } from 'lucide-react'
 import FormLabel from './FormLabel'
 import { useClickOutside } from './hooks/useClickOutside'
+import { useVirtualizer } from '@tanstack/react-virtual'
+
+const ItemRow = ({ item, isSelected, onClick, style }) => {
+  return <li
+    style={style}
+    onClick={onClick}
+    className={`w-full px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 flex items-center
+      ${isSelected
+    ? 'bg-blue-50 text-blue-700 font-medium'
+    : 'text-slate-700'
+}`
+    }
+  >
+    <span>{item.label}</span>
+    {item.sublabel && (
+      <span className="text-slate-400 text-xs ml-2">{item.sublabel}</span>
+    )}
+  </li>
+}
 
 const SearchCombobox = ({
   // RHF field control
@@ -17,23 +36,36 @@ const SearchCombobox = ({
   notFoundText,
 
   // 'create new' row at bottom of dropdown
-  onCreate,           // () => void — if undefined, no create row shown
+  onCreate,
   createLabel,
   CreateIcon,
 }) => {
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
-  const ref = useRef(null)
+  const containerRef = useRef(null)
+  const listRef = useRef(null)
 
-  useClickOutside(ref, () => setOpen(false))
-  const selectedItem  = items.find(i => i.id === value) ?? null
+  useClickOutside(containerRef, () => setOpen(false))
 
-  const filteredItems = query.trim() === ''
-    ? items
-    : items.filter(i =>
-      i.label.toLowerCase().includes(query.toLowerCase()) ||
-      i.sublabel?.toLowerCase().includes(query)
+  const selectedItem = useMemo(() =>
+    items.find(i => i.id === value) ?? null,
+  [items, value])
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return items
+    return items.filter(i =>
+      i.label.toLowerCase().includes(q) ||
+      i.sublabel?.toLowerCase().includes(q)
     )
+  }, [items, query])
+
+  const virtualizer = useVirtualizer({
+    count: filteredItems.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 36, // px per row
+    overscan: 5
+  })
 
   const handleSelect = (item) => {
     onChange(item)
@@ -44,30 +76,11 @@ const SearchCombobox = ({
   const handleClear = (e) => {
     e.stopPropagation()
     onChange(null)
-  }
-
-  const hasNoItems = filteredItems.length === 0
-  const renderItems = () => {
-    return filteredItems.map(item => (
-      <li
-        key={item.id}
-        onClick={() => handleSelect(item)}
-        className={`px-3 py-2 text-sm cursor-pointer hover:bg-slate-50
-          ${item.id === value
-        ? 'bg-blue-50 text-blue-700 font-medium'
-        : 'text-slate-700'
-      }`}
-      >
-        <span>{item.label}</span>
-        {item.sublabel && (
-          <span className="text-slate-400 text-xs ml-2">{item.sublabel}</span>
-        )}
-      </li>
-    ))
+    setQuery('')
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={containerRef} className="relative w-full">
       {label && <FormLabel>{label}</FormLabel>}
 
       <div
@@ -76,23 +89,7 @@ const SearchCombobox = ({
                    focus-within:ring-2 focus-within:ring-blue-500"
         onClick={() => setOpen(v => !v)}
       >
-        {!open && selectedItem ? (
-          <div className="flex items-center justify-between flex-1 min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-slate-800 font-medium truncate">{selectedItem.label}</span>
-              {selectedItem.sublabel && (
-                <span className="text-slate-400 text-xs shrink-0">{selectedItem.sublabel}</span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleClear}
-              className="p-0.5 hover:bg-slate-100 rounded text-slate-400 ml-2 shrink-0"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        ) : (
+        <div className='relative flex-1 flex items-center min-w-0'>
           <input
             autoFocus={open}
             value={query}
@@ -101,19 +98,48 @@ const SearchCombobox = ({
             className="flex-1 outline-none bg-transparent text-sm"
             onClick={(e) => { e.stopPropagation(); setOpen(true) }}
           />
-        )}
-        {!selectedItem && (
-          <ChevronDown size={16} className="text-slate-400 shrink-0 ml-2" />
-        )}
+          {!open && selectedItem && (
+            <div className="absolute inset-0 bg-white flex items-center gap-2 pointer-events-none">
+              <span className="text-slate-800 font-medium truncate">{selectedItem.label}</span>
+              {selectedItem.sublabel && (
+                <span className="text-slate-400 text-xs shrink-0">{selectedItem.sublabel}</span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-1 ml-2 shrink-0">
+          {(selectedItem || query) && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1 hover:bg-slate-100 rounded-full text-slate-400 transition-colors"
+            >
+              <X size={14} />
+            </button>
+          )}
+          <ChevronDown
+            size={16}
+            className={`text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          />
+        </div>
       </div>
 
       {open && (
-        <ul className="absolute z-50 w-full mt-1 bg-white border border-slate-200
+        <ul
+          ref={listRef}
+          className="absolute z-50 w-full mt-1 bg-white border border-slate-200
                        rounded-lg shadow-lg max-h-52 overflow-y-auto">
-          {hasNoItems
-            ? <li className="px-3 py-2 text-sm text-slate-400">{notFoundText}</li>
-            : renderItems()
-          }
+          <div style={{ height: virtualizer.getTotalSize() }} className="relative">
+            {virtualizer.getVirtualItems().map(virtualRow => (
+              <ItemRow
+                key={virtualRow.key}
+                style={{ position: 'absolute', top: virtualRow.start }}
+                item={filteredItems[virtualRow.index]}
+                isSelected={filteredItems[virtualRow.index].id === value}
+                onClick={() => handleSelect(filteredItems[virtualRow.index])}
+              />
+            ))}
+          </div>
 
           {onCreate && (
             <li
