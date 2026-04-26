@@ -1,6 +1,6 @@
 import { MIN_PER_HOUR, GRID_RESOLUTION_MIN, DISPLAY_RESOLUTION_MIN } from './time-config'
 
-const calculateSlotsPerHour = (minutesPerSlot) => {
+export const calculateSlotsPerHour = (minutesPerSlot) => {
   if (MIN_PER_HOUR % minutesPerSlot !== 0) {
     throw new Error(`Invalid slot size: ${minutesPerSlot} does not evenly divide 60`)
   }
@@ -8,7 +8,7 @@ const calculateSlotsPerHour = (minutesPerSlot) => {
   return MIN_PER_HOUR / minutesPerSlot
 }
 
-const calculateTotalSlots = (startHour, endHour, minutesPerSlot) => {
+export const calculateTotalSlots = (startHour, endHour, minutesPerSlot) => {
   const totalHours = endHour - startHour
   return totalHours * calculateSlotsPerHour(minutesPerSlot)
 }

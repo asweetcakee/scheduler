@@ -9,7 +9,7 @@ const TimeColumn = () => {
   const displayUnitHeight = calculateDisplaySlotHeight(slotHeight)
 
   return (
-    <div className="w-20 bg-slate-50 border-r border-slate-200">
+    <div data-testid="time-column" className="w-20 bg-slate-50 border-r border-slate-200">
       {slots.map((time, index) => {
         const minutes = time.slice(-2)
         const isFullHour = minutes === '00'
@@ -17,6 +17,7 @@ const TimeColumn = () => {
 
         return (
           <div
+            data-testid="time-slot"
             key={index}
             style={{ height: `${displayUnitHeight}px` }}
             className={`border-slate-200 flex justify-end pr-2 select-none

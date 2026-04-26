@@ -29,6 +29,7 @@ const StaffColumn = ({ staff }) => {
       </div>
 
       <div
+        data-testid="staff-column"
         className="relative w-full bg-white group"
         style={{
           height: `${totalHeight}px`,

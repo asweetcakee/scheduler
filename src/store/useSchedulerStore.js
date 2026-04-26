@@ -39,7 +39,7 @@ const DEFAULT_SEED = {
   appointmentColor: '#60f63b'
 }
 
-export const useSchedulerStore = create(devtools((set) => ({
+export const useSchedulerStore = create(devtools((set, get) => ({
   // Global state for the scheduler app
   selectedDate: startOfToday(),
   viewMode: 'day', // 'day', 'week', 'list'

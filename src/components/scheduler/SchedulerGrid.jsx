@@ -9,7 +9,7 @@ const SchedulerGrid = () => {
 
         {/* Time column + corner block in one sticky element */}
         <div className="sticky left-0 z-20 flex flex-col">
-          <div className="sticky top-0 z-30 w-20 h-16 bg-white border-b border-b-white border-r border-r-slate-200" />
+          <div data-testid="corner-block" className="sticky top-0 z-30 w-20 h-16 bg-white border-b border-b-white border-r border-r-slate-200" />
           <TimeColumn />
         </div>
 
