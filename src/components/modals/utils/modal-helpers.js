@@ -1,9 +1,10 @@
 import { calculateSlotTime } from './modal-calculations'
 
 export const resetStartTimeOnMasterChange = (id, seedData) => {
-  return id === seedData?.staffId && seedData?.startTime
-    ? seedData.startTime
-    : ''
+  if (id === seedData?.staffId) {
+    return seedData?.startTime ?? ''
+  }
+  return ''
 }
 
 const formatToDurationTime = (minutes, hours) => {
