@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { isValid, parse, isAfter, isBefore, startOfToday, addMinutes } from 'date-fns'
+import { isValid, parse, isAfter, isBefore, startOfToday, addMinutes, format } from 'date-fns'
 
 const LIMITS = {
   NAME_MIN: 2,
@@ -65,20 +65,20 @@ const phoneString = z
   )
 
 const moneyAmount = z
-  .number({ invalid_type_error: 'Ожидается числовое значение' })
+  .number({ error: 'Ожидается числовое значение' })
   .min(LIMITS.PRICE_MIN, 'Сумма не может быть отрицательной')
   .max(LIMITS.PRICE_MAX, `Сумма не может превышать ${LIMITS.PRICE_MAX.toLocaleString()}`)
 
 const masterDateTimeSchema = z.object({
   staffId: z
     .number({
-      error: (issue) => {
-        if (issue.input === undefined) return 'Некорректный идентификатор мастера'
-        return 'Пожалуйста, выберите мастера'
-      }
+      error: (issue) =>
+        issue.input === undefined
+          ? 'Пожалуйста, выберите мастера'
+          : 'Некорректный идентификатор мастера',
     })
-      .int('Пожалуйста, выберите мастера')
-      .positive('Пожалуйста, выберите мастера'),
+    .int('Пожалуйста, выберите мастера')
+    .positive('Пожалуйста, выберите мастера'),
  
   date: calendarDateString.refine((val) => {
     const selectedDate = parse(val, 'yyyy-MM-dd', new Date())
@@ -90,6 +90,7 @@ const masterDateTimeSchema = z.object({
  
   // endTime is read-only / computed. Still validated so the server rejects tampered payloads
   // The cross-field check that endTime === startTime + Σ(durations) lives on the merged appointmentSchema
+  // midnight-crossing appointments (e.g. 23:00 + 90min = 00:30) are not supported
   endTime: wallClockTimeString('время окончания'),
 })
 
@@ -111,17 +112,17 @@ const clientInfoSchema = z.object({
 const serviceRowSchema = z
   .object({
     serviceId: z
-      .number({ 
-        error: (issue) => {
-          if (issue.input === undefined) return 'Некорректный идентификатор услуги'
-          return 'Пожалуйста, выберите услугу'
-        }
+      .number({
+        error: (issue) =>
+          issue.input === undefined
+            ? 'Пожалуйста, выберите услугу'
+            : 'Некорректный идентификатор услуги',
       })
-      .int()
+      .int('Пожалуйста, выберите услугу')
       .positive('Пожалуйста, выберите услугу'),
  
     duration: z
-      .number({ invalid_type_error: 'Продолжительность должна быть числом' })
+      .number({ error: 'Продолжительность должна быть числом' })
       .int()
       .min(LIMITS.DURATION_MIN_MINUTES, `Продолжительность услуги должна быть не менее ${LIMITS.DURATION_MIN_MINUTES} минуты`)
       .max(LIMITS.DURATION_MAX_MINUTES, `Продолжительность услуги не может превышать ${LIMITS.DURATION_MAX_MINUTES} минут`),
@@ -130,7 +131,7 @@ const serviceRowSchema = z
  
     // Fetched from client pricing context, stored as snapshot at booking time
     discountPercent: z
-      .number({ invalid_type_error: 'Скидка должна быть числом' })
+      .number({ error: 'Скидка должна быть числом' })
       .min(0, 'Скидка не может быть отрицательной')
       .max(100, 'Скидка не может превышать 100%'),
  
@@ -168,13 +169,13 @@ const notificationSchema = z.object({
       // Validated conditionally below - field-level .min/.max would reject
       // valid values when the reminder flags are both false
       remindBeforeMinutes: z
-        .number({ invalid_type_error: 'Укажите время напоминания в минутах' })
+        .number({ error: 'Укажите время напоминания в минутах' })
         .int(),
  
       requestReview: z.boolean(),
  
       reviewAfterMinutes: z
-        .number({ invalid_type_error: 'Укажите время запроса отзыва в минутах' })
+        .number({ error: 'Укажите время запроса отзыва в минутах' })
         .int(),
     })
     // remindBeforeMinutes is only meaningful when at least one remind flag is on
@@ -184,7 +185,7 @@ const notificationSchema = z.object({
         (n.remindBeforeMinutes >= LIMITS.REMIND_BEFORE_MIN &&
           n.remindBeforeMinutes <= LIMITS.REMIND_BEFORE_MAX),
       {
-        message: `Напоминание должно быть за ${LIMITS.REMIND_BEFORE_MIN}-${LIMITS.REMIND_BEFORE_MAX} минут до начала`,
+        message: `Напоминание должно быть в пределах ${LIMITS.REMIND_BEFORE_MIN}-${LIMITS.REMIND_BEFORE_MAX} минут до начала`,
         path: ['remindBeforeMinutes'],
       }
     )
@@ -203,7 +204,7 @@ const notificationSchema = z.object({
 
 const appointmentMetaSchema = z.object({
   appointmentStatus: z.enum(['scheduled', 'completed', 'canceled'], {
-    errorMap: () => ({ message: 'Неверный статус записи' }),
+    error: () => 'Неверный статус записи',
   }),
  
   adminNotes: z
@@ -256,9 +257,10 @@ export const appointmentSchema = masterDateTimeSchema
   // 1. endTime must be strictly after startTime (catches midnight-wrap mistakes)
   .refine(
     (data) => {
-      const base = new Date()
+      if (!data.startTime || !data.endTime) return true
       const [sh, sm] = data.startTime.split(':').map(Number)
       const [eh, em] = data.endTime.split(':').map(Number)
+      const base = new Date()
       const start = new Date(base.setHours(sh, sm, 0, 0))
       const end = new Date(new Date().setHours(eh, em, 0, 0))
       return isAfter(end, start)
@@ -269,11 +271,12 @@ export const appointmentSchema = masterDateTimeSchema
   // 2. endTime must equal startTime + Σ(service durations)
   .refine(
     (data) => {
+      if (!data.startTime || !data.endTime) return true
       const totalDuration = data.services.reduce((sum, s) => sum + s.duration, 0)
       const [sh, sm] = data.startTime.split(':').map(Number)
       const startDate = new Date(new Date().setHours(sh, sm, 0, 0))
       const expectedEnd = addMinutes(startDate, totalDuration)
-      const expectedEndStr = `${String(expectedEnd.getHours()).padStart(2, '0')}:${String(expectedEnd.getMinutes()).padStart(2, '0')}`
+      const expectedEndStr = format(expectedEnd, 'HH:mm')
       return data.endTime === expectedEndStr
     },
     {
