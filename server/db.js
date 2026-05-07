@@ -1,6 +1,6 @@
 const Database = require('better-sqlite3')
 const fs = require('node:fs')
-const path = require('node:path')
+const path = require('path')
 
 const db = new Database('scheduler-salon.db', { verbose: console.log })
 
@@ -18,4 +18,4 @@ try {
   process.exit(1)
 }
 
-exports.module = db
+module.exports = db
