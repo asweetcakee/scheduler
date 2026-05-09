@@ -22,8 +22,20 @@ CREATE TABLE IF NOT EXISTS staff (
   name           TEXT    NOT NULL,
   phone          TEXT    NOT NULL UNIQUE
                          CHECK(length(phone) >= 7 AND length(phone) <= 15),
-  specialization TEXT    NOT NULL,
   isActive       BOOLEAN NOT NULL DEFAULT 1 CHECK(isActive IN (0, 1))
+);
+
+CREATE TABLE IF NOT EXISTS specializations (
+  id   INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS staff_specializations (
+  staffId          INTEGER NOT NULL,
+  specializationId INTEGER NOT NULL,
+  PRIMARY KEY (staffId, specializationId),
+  FOREIGN KEY (staffId)          REFERENCES staff(id)           ON DELETE CASCADE,
+  FOREIGN KEY (specializationId) REFERENCES specializations(id) ON DELETE CASCADE
 );
 
 
@@ -76,7 +88,7 @@ CREATE TABLE IF NOT EXISTS client_discounts (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
   clientId        INTEGER NOT NULL,
   serviceId       INTEGER NOT NULL,
-  discountPercent INTEGER NOT NULL CHECK(discountPercent BETWEEN 1 AND 100), -- no 0% no-op rows
+  discountPercent INTEGER NOT NULL CHECK(discountPercent BETWEEN 0 AND 100),
   FOREIGN KEY (clientId)  REFERENCES clients(id)  ON DELETE CASCADE,  -- discount gone if client deleted
   FOREIGN KEY (serviceId) REFERENCES services(id) ON DELETE RESTRICT,
   UNIQUE(clientId, serviceId)

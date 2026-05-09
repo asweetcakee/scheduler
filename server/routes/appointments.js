@@ -1,4 +1,4 @@
-const { getAllAppointments } = require('../controllers/appointments')
+const { getAllAppointments } = require('../controllers/appointmentsController')
 
 const appointmentsRouter = require('express').Router()
 

@@ -47,10 +47,9 @@ const createService = (req, res) => {
 
 // TODO: validate data with ZOD schema before inserting it
 const updateService = (req, res) => {
+  const { id } = req.params
+  const { name, duration, price } = req.body
   try {
-    const { id } = req.params
-    const { name, duration, price } = req.body
-
     const result = db.prepare(
       `UPDATE services 
       SET name = ?, duration = ?, price = ?
@@ -72,8 +71,8 @@ const updateService = (req, res) => {
 }
 
 const deleteService = (req, res) => {
+  const { id } = req.params
   try {
-    const { id } = req.params
     const result = db.prepare(
       `DELETE FROM services WHERE id = ?`
     ).run(id)
