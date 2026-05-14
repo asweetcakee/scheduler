@@ -1,11 +1,3 @@
--- ============================================================
--- IMPORTANT: Add this to db.js on every connection, before 
--- anything else runs:
---   db.pragma('foreign_keys = ON')
--- SQLite ignores all FK constraints without this
--- ============================================================
-
-
 CREATE TABLE IF NOT EXISTS clients (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   name        TEXT    NOT NULL,
@@ -22,7 +14,8 @@ CREATE TABLE IF NOT EXISTS staff (
   name           TEXT    NOT NULL,
   phone          TEXT    NOT NULL UNIQUE
                          CHECK(length(phone) >= 7 AND length(phone) <= 15),
-  isActive       BOOLEAN NOT NULL DEFAULT 1 CHECK(isActive IN (0, 1))
+  isActive       BOOLEAN NOT NULL DEFAULT 1 CHECK(isActive IN (0, 1)),
+  createdAt   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS specializations (
@@ -35,7 +28,7 @@ CREATE TABLE IF NOT EXISTS staff_specializations (
   specializationId INTEGER NOT NULL,
   PRIMARY KEY (staffId, specializationId),
   FOREIGN KEY (staffId)          REFERENCES staff(id)           ON DELETE CASCADE,
-  FOREIGN KEY (specializationId) REFERENCES specializations(id) ON DELETE CASCADE
+  FOREIGN KEY (specializationId) REFERENCES specializations(id) ON DELETE RESTRICT
 );
 
 
@@ -44,7 +37,8 @@ CREATE TABLE IF NOT EXISTS services (
   name     TEXT    NOT NULL UNIQUE,
   duration INTEGER NOT NULL CHECK(duration >= 5),  -- minutes, 5 is shortest bookable slot
   price    INTEGER NOT NULL CHECK(price > 0),       -- stored in tiyns, never zero 500050 = 5000.50
-  isActive BOOLEAN NOT NULL DEFAULT 1 CHECK(isActive IN (0, 1))
+  isActive BOOLEAN NOT NULL DEFAULT 1 CHECK(isActive IN (0, 1)),
+  createdAt   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 
@@ -89,6 +83,7 @@ CREATE TABLE IF NOT EXISTS client_discounts (
   clientId        INTEGER NOT NULL,
   serviceId       INTEGER NOT NULL,
   discountPercent INTEGER NOT NULL CHECK(discountPercent BETWEEN 0 AND 100),
+  createdAt   TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (clientId)  REFERENCES clients(id)  ON DELETE CASCADE,  -- discount gone if client deleted
   FOREIGN KEY (serviceId) REFERENCES services(id) ON DELETE RESTRICT,
   UNIQUE(clientId, serviceId)
@@ -103,6 +98,11 @@ CREATE TABLE IF NOT EXISTS staff_schedules (
   shiftEnd    TEXT    NOT NULL CHECK(shiftEnd > shiftStart),
   isCancelled BOOLEAN NOT NULL DEFAULT 0 CHECK(isCancelled IN (0, 1)),
   notes       TEXT,
+  createdAt   TEXT NOT NULL DEFAULT (datetime('now')),
   FOREIGN KEY (staffId) REFERENCES staff(id) ON DELETE RESTRICT,
   UNIQUE(staffId, date)
 );
+
+CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(date);
+CREATE INDEX IF NOT EXISTS idx_appointments_staffId ON appointments(staffId);
+CREATE INDEX IF NOT EXISTS idx_appointment_services_appointmentId ON appointment_services(appointmentId);

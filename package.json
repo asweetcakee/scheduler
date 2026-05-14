@@ -5,6 +5,6 @@
     "start": "NODE_ENV=production npm start --prefix server"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "9.2.1"
   }
 }

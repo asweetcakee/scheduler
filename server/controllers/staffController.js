@@ -26,7 +26,7 @@ const getAllStaff = (req, res) => {
 }
 
 const getStaffById = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   try {
     const staffMember = db.prepare(`SELECT * FROM staff WHERE id = ?`).get(id)
     if (!staffMember) return res.status(404).json({ error: 'Staff member not found' })
@@ -100,13 +100,13 @@ const createStaffMember = (req, res) => {
 
 // TODO: validate data with ZOD schema before inserting it
 const updateStaffMember= (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   const { name, phone, isActive, specializationIds } = req.body
-  const updateTransaction = db.transaction((staffId, data, specIds) => {
+  const updateTransaction = db.transaction((staffId, memberData, specIds) => {
     
     const result = db.prepare(`
       UPDATE staff SET name = ?, phone = ?, isActive = ? WHERE id = ?
-    `).run(data.name, data.phone, data.isActive, staffId)
+    `).run(memberData.name, memberData.phone, memberData.isActive, staffId)
 
     if (result.changes === 0) throw new Error('NOT_FOUND')
 
@@ -133,7 +133,7 @@ const updateStaffMember= (req, res) => {
 }
 
 const deleteStaffMember = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   try {
     const result = db.prepare(`DELETE FROM staff WHERE id = ?`).run(id)
     

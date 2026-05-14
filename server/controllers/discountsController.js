@@ -11,12 +11,9 @@ const getAllDiscounts = (req, res) => {
 }
 
 const getClientDiscounts = (req, res) => {
-  const { id } = req.params
+  const clientId = Number(req.params.id)
   try {
-    const discounts = db.prepare(`SELECT * FROM client_discounts WHERE clientId = ?`).all(id)
-    if (!discounts) {
-      res.status(404).json({ message: 'Client not found' })
-    }
+    const discounts = db.prepare(`SELECT * FROM client_discounts WHERE clientId = ?`).all(clientId)
     res.status(200).json(discounts)
   } catch (error) {
     console.error('Error fetching client discounts: ', error?.message)
@@ -26,7 +23,8 @@ const getClientDiscounts = (req, res) => {
 
 // TODO: validate data with ZOD schema before inserting it
 const createClientDiscount = (req, res) => {
-  const { clientId, serviceId } = req.body
+  const clientId = Number(req.params.id)
+  const { serviceId } = req.body
   const discountPercent = req.body.discountPercent ?? 0
 
   if (!clientId || !serviceId) {
@@ -52,8 +50,9 @@ const createClientDiscount = (req, res) => {
 }
 
 // TODO: validate data with ZOD schema before inserting it
-const updateClientDiscountById = (req, res) => {
-  const { id } = req.params
+const updateClientDiscount = (req, res) => {
+  const clientId = Number(req.params.id)
+  const serviceId = Number(req.params.serviceId)
   const { discountPercent } = req.body
 
   if (discountPercent === undefined || discountPercent < 0 || discountPercent > 100) {
@@ -64,26 +63,28 @@ const updateClientDiscountById = (req, res) => {
     const result = db.prepare(
       `UPDATE client_discounts 
       SET discountPercent = ? 
-      WHERE id = ?`
-    ).run(discountPercent, id)
-
+      WHERE clientId = ? AND serviceId = ?`
+    ).run(discountPercent, clientId, serviceId)
     if (result.changes === 0) {
-      return res.status(404).json({ error: 'Discount record not found' })
+      return res.status(404).json({ error: 'Discount record not found this client and service' })
     }
-
-    res.status(200).json({ message: 'Discount updated successfully', id, discountPercent })
+    res.status(200).json({ message: 'Discount updated successfully' })
   } catch (error) {
+    if (error.message.includes('CHECK constraint failed')) {
+      return res.status(400).json({ error: 'Discount must be between 0 and 100' })
+    }
     console.error('Error updating discount percent: ', error?.message)
     res.status(500).json({ error: 'Failed to update discount percent' })
   }
 }
 
 const deleteClientDiscount = (req, res) => {
-  const { id } = req.params
+  const clientId = Number(req.params.id)
+  const serviceId = Number(req.params.serviceId)
   try {
-    const result = db.prepare(`DELETE FROM client_discounts WHERE id = ?`).run(id)
-    if (result.changes === 0) return res.status(404).json({ error: 'Row not found' })
-    res.status(200).json({ message: 'Row deleted successfully' })
+    const result = db.prepare(`DELETE FROM client_discounts WHERE clientId = ? AND serviceId = ?`).run(clientId, serviceId)
+    if (result.changes === 0) return res.status(404).json({ error: 'Discount not found' })
+    res.status(200).json({ message: 'Discount deleted successfully' })
   } catch (error) {
     console.error('Error deleting a row: ', error?.message)
     res.status(500).json({ error: 'Failed to delete a row' })
@@ -94,6 +95,6 @@ module.exports = {
   getAllDiscounts,
   getClientDiscounts,
   createClientDiscount,
-  updateClientDiscountById,
+  updateClientDiscount,
   deleteClientDiscount
 }

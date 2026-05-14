@@ -18,7 +18,7 @@ const createSpecialization = (req, res) => {
 
   try {
     const result = db.prepare(`INSERT INTO specializations (name) VALUES (?)`).run(name)
-    res.status(201).json(result)
+    res.status(201).json({ id: result.lastInsertRowid, name })
   } catch (error) {
     if (error.message.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: 'This specialization already exists' })
@@ -30,7 +30,7 @@ const createSpecialization = (req, res) => {
 
 // TODO: validate data with ZOD schema before inserting it
 const updateSpecializationById = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   const { name } = req.body
   try {
     const result = db.prepare(`UPDATE specializations SET name = ? WHERE id = ?`).run(name, id)
@@ -48,7 +48,7 @@ const updateSpecializationById = (req, res) => {
 }
 
 const deleteSpecializationById = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   try {
     const result = db.prepare(`DELETE FROM specializations WHERE id = ?`).run(id)
     if (result.changes === 0) {

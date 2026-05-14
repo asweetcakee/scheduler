@@ -11,7 +11,7 @@ const getAllClients = (req, res) => {
 }
 
 const getClientById = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   try {
     const client = db.prepare(`SELECT * FROM clients WHERE id = ?`).get(id)
     if (client) {
@@ -79,7 +79,7 @@ const createClient = (req, res) => {
 
 // TODO: validate data with ZOD schema before inserting it
 const updateClient = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   const { name, phone, isRegular, isAllergic } = req.body
   try {
     const result = db.prepare(
@@ -103,7 +103,7 @@ const updateClient = (req, res) => {
 }
 
 const deleteClient = (req, res) => {
-  const { id } = req.params
+  const id = Number(req.params.id)
   try {
     const result = db.prepare(`DELETE FROM clients WHERE id = ?`).run(id)
     if(result.changes > 0) {
