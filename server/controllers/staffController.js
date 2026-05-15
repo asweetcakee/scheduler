@@ -126,7 +126,7 @@ const updateStaffMember= (req, res) => {
     updateTransaction(id, { name, phone, isActive }, specializationIds)
     res.status(200).json({ message: 'Updated successfully', id, specializationIds })
   } catch (error) {
-    if (error.message === 'NOT_FOUND') return res.status(404).json({ error: 'Staff not found' })
+    if (error?.message === 'NOT_FOUND') return res.status(404).json({ error: 'Staff not found' })
     console.error('Error updating staff:', error.message)
     res.status(500).json({ error: 'Failed to update staff' })
   }

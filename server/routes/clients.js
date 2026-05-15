@@ -4,7 +4,7 @@ const { createClientDiscount, deleteClientDiscount, updateClientDiscount, getCli
 const clientsRouter = require('express').Router()
 
 clientsRouter.get('/', getAllClients)
-clientsRouter.get('/search', searchClientByPhone)
+clientsRouter.get('/search', searchClientByPhone) // search?phone=77071234567
 
 clientsRouter.get('/:id', getClientById)
 clientsRouter.get('/:id/discounts', getClientDiscounts)

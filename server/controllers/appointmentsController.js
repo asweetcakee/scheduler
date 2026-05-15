@@ -46,34 +46,88 @@ const getAppointmentById = (req, res) => {
   }
 }
 
+const toTiyins = (tenge) => Math.round(tenge * 100)
+const toTenge = (tiyins) => (tiyins / 100).toFixed(2)
 
-// TODO: Iteration 2 - Server-side revenue validation
-// Currently: actualRevenue is accepted directly from req.body (frontend sends it)
-// Problem: frontend calculation could have bugs, sending wrong totals to DB
-// Fix: never accept actualRevenue from req.body
-//   1. Accept services array in request body instead
-//   2. Compute actualRevenue = services.reduce((sum, s) => sum + s.actualChargedPrice, 0)
-//   3. Insert appointment_services rows in the same transaction
-// Why? backend must be the source of truth, frontend calc is for UX only
+// Prices from frontend arrive as tenge floats - converted to tiyins (integers) before any math or DB writes
+// actualRevenue is never trusted from frontend - backend recomputes it from services as the source of truth
+// Two-step validation inside the transaction:
+//   1. Each service: expectedPrice (catalogPrice * discount) must match actualChargedPrice sent by frontend
+//   2. Sum of all expectedPrices must match clientProvidedTotal (actualRevenue)
+// If either check fails, the whole transaction is aborted
+// On success, runningTotal (backend-computed) is written to DB as actualRevenue
+// Response returns tenge floats for UX, tiyins for any frontend that needs the raw integer
 const createAppointment = (req, res) => {
   const clientId = req.body.clientId ?? null
-  const { staffId, date, startTime, endTime, 
-    actualRevenue, status, isConfirmed, adminNotes 
-  } = req.body
-  try {
+  const { staffId, date, startTime, endTime, status, isConfirmed, adminNotes } = req.body
+  const clientProvidedTotal = toTiyins(req.body.actualRevenue)
+  
+  // Here I clean the services list from floats and convert to tiyins (Integer)
+  const services = (req.body.services || []).map(s => ({
+    ...s,
+    catalogPrice: toTiyins(s.catalogPrice),
+    actualChargedPrice: toTiyins(s.actualChargedPrice)
+  }))
+
+  const insertTransaction = db.transaction((appointmentData, servicesData) => {
+    // Here I'm making sure in the backend that actualRevenue and actualChargedPrice are calculated correctly
+    // actualRevenue is sum of actualChargedPrice
+    // actualChargedPrice is result of catalogPrice * appliedDiscount
+    const runningTotal = servicesData.reduce((sum, service) => {
+      const expectedPrice = Math.round(service.catalogPrice * (1 - service.appliedDiscount / 100))
+      if (expectedPrice !== service.actualChargedPrice) {
+        throw new Error('INCORRECT_SERVICE_PRICE')
+      }
+      return sum + expectedPrice
+    }, 0)
+    
+    if (runningTotal !== clientProvidedTotal) {
+      throw new Error('TOTAL_MISMATCH')
+    }
+    
     const result = db.prepare(
-      `INSERT INTO appointments (clientId, staffId, date, startTime, endTime, 
+      `INSERT INTO appointments (clientId, staffId, date, startTime, endTime,
         actualRevenue, status, isConfirmed, adminNotes)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(clientId, staffId, date, startTime, endTime, 
-        actualRevenue, status, isConfirmed ? 1 : 0, adminNotes)
+      `).run(appointmentData.clientId, appointmentData.staffId, appointmentData.date,
+        appointmentData.startTime, appointmentData.endTime,
+        runningTotal, appointmentData.status,
+        appointmentData.isConfirmed ? 1 : 0, appointmentData.adminNotes)
+    
+    const newAppointmentId = result.lastInsertRowid
+
+    if (servicesData && servicesData.length > 0){
+      const insertServices = db.prepare(
+        `INSERT INTO appointment_services (appointmentId, serviceId, serviceName, catalogDuration, catalogPrice, appliedDiscount, actualChargedPrice)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `)
+      for (const s of servicesData) {
+        insertServices.run(newAppointmentId, s.serviceId, s.serviceName, 
+          s.catalogDuration, s.catalogPrice, s.appliedDiscount, s.actualChargedPrice
+        )
+      }
+    }
+
+    return { newAppointmentId, runningTotal }
+  })
+  try {
+    const { newAppointmentId, runningTotal } = insertTransaction({ 
+      clientId, staffId, date, startTime, endTime, 
+      clientProvidedTotal, status, isConfirmed, adminNotes 
+    }, services)
     
     res.status(201).json({
-      id: result.lastInsertRowid,
-      clientId, staffId, date, startTime, endTime, actualRevenue, status, isConfirmed, adminNotes,
+      ...req.body,
+      id: newAppointmentId,
+      actualRevenue: toTenge(runningTotal), // for UX (Float)
+      actualRevenueTiyins: runningTotal, // how it was written into DB (Integer)
+      clientId,
       isAnonymous: clientId === null
     })
   } catch (error) {
+    if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
+      return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
+    }
     if (error?.message.includes('endTime > startTime')) {
       return res.status(400).json({ message: 'The end time must be later than the start time' })
     } 
@@ -95,9 +149,15 @@ const updateAppointment = (req, res) => {
 
 }
 
+const deleteAppointment = (req, res) => {
+
+}
+
 module.exports = {
   getAllAppointments,
   getAppointmentsByDate,
   getAppointmentById,
-  createAppointment
+  createAppointment,
+  updateAppointment,
+  deleteAppointment
 }
