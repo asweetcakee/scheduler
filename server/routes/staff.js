@@ -1,4 +1,4 @@
-const { getSchedulesByStaffId, getSchedulesByDate, createScheduleForStaff, updateSchedule, deleteSchedule } = require('../controllers/schedulesController')
+const { getNextScheduleForStaff, createScheduleForStaff, updateSchedule, deleteSchedule } = require('../controllers/schedulesController')
 const { getAllStaff, getStaffById, createStaffMember, updateStaffMember, deleteStaffMember, searchStaffMemberByPhone } = require('../controllers/staffController')
 
 const staffRouter = require('express').Router()
@@ -6,10 +6,9 @@ const staffRouter = require('express').Router()
 staffRouter.get('/', getAllStaff)
 
 staffRouter.get('/search', searchStaffMemberByPhone) // ?phone=77071234567
-staffRouter.get('/schedules', getSchedulesByDate) // ?date=2026-05-14
 
 staffRouter.get('/:id', getStaffById)
-staffRouter.get('/:id/schedules', getSchedulesByStaffId)
+staffRouter.get('/:id/schedules', getNextScheduleForStaff)
 
 staffRouter.post('/', createStaffMember)
 staffRouter.post('/:id/schedules', createScheduleForStaff)

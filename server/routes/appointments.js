@@ -2,12 +2,11 @@ const { getAllAppointments, getAppointmentsByDate, getAppointmentById, createApp
 
 const appointmentsRouter = require('express').Router()
 
-appointmentsRouter.get('/', getAllAppointments)
-appointmentsRouter.get('/', getAppointmentsByDate) // ?date=2026-05-07
+appointmentsRouter.get('/', getAllAppointments) // ?date=2026-05-07
 appointmentsRouter.get('/:id', getAppointmentById)
 
 appointmentsRouter.post('/', createAppointment)
-appointmentsRouter.put('/', updateAppointment)
-appointmentsRouter.delete('/', deleteAppointment)
+appointmentsRouter.put('/:id', updateAppointment)
+appointmentsRouter.delete('/:id', deleteAppointment)
 
 module.exports = appointmentsRouter

@@ -1,24 +1,53 @@
 const db = require('../db')
 
-const getSpecializationsForStaff = (staffId) => {
+const getAllSpecializations = () => {
   return db.prepare(`
-    SELECT sp.id, sp.name 
-    FROM specializations sp
-    JOIN staff_specializations ss ON sp.id = ss.specializationId
-    WHERE ss.staffId = ?
-  `).all(staffId)
+    SELECT ss.staffId, sp.id, sp.name
+      FROM staff_specializations ss
+      JOIN specializations sp ON ss.specializationId = sp.id  
+  `).all()
+}
+
+const getActiveShifts = (date) => {
+  return db.prepare(`
+    SELECT 
+      s.*, 
+      ssd.shiftStart, 
+      ssd.shiftEnd, 
+      ssd.isCancelled, 
+      ssd.notes
+    FROM staff s
+    JOIN staff_schedules ssd ON s.id = ssd.staffId
+    WHERE ssd.date = ?
+  `).all(date)
 }
 
 const getAllStaff = (req, res) => {
+  const { date } = req.query
   try {
-    const staffMembers = db.prepare(`SELECT * FROM staff`).all()
+    const staffMembers = date 
+      ? getActiveShifts(date)
+      : db.prepare(`SELECT * FROM staff`).all()
 
-    const staffWithSpecializations = staffMembers.map(m => ({
-      ...m,
-      specializations: getSpecializationsForStaff(m.id)
-    }))
+    const allSpecializations = getAllSpecializations()
 
-    res.status(200).json(staffWithSpecializations)
+    const formattedStaff = staffMembers.map(m => {
+      const { shiftStart, shiftEnd, isCancelled, notes, ...staffInfo } = m
+      
+      const mySpecs = allSpecializations
+        .filter(spec => spec.staffId === m.id)
+        .map(spec => ({ id: spec.id, name: spec.name }))
+      
+      return {
+        ...staffInfo,
+        specializations: mySpecs,
+        schedule: shiftStart 
+          ? { shiftStart, shiftEnd, isCancelled, notes }
+          : null
+      }
+    })
+
+    res.status(200).json(formattedStaff)
   } catch (error) {
     console.error('Error fetching staff', error?.message)
     res.status(500).json({ error: 'Failed to fetch staff' })

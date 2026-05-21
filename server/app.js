@@ -21,5 +21,6 @@ app.use('/api/staff', staffRouter)
 app.use('/api/appointments', appointmentsRouter)
 
 app.use(middleware.unknownEndpoint)
+app.use(middleware.errorHandler)
 
 module.exports = app
