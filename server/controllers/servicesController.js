@@ -25,7 +25,6 @@ const getServiceById = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const createService = (req, res) => {
   const { name, duration, price } = req.body
   try {
@@ -40,12 +39,14 @@ const createService = (req, res) => {
       price 
     })
   } catch(error) {
+    if (error.message.includes('UNIQUE constraint failed: services.name')) {
+      return res.status(409).json({ error: 'Service with this name already exists' })
+    }
     console.error('Error creating a service: ', error?.message)
     res.status(500).json({ error: 'Failed to create a service' })
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const updateService = (req, res) => {
   const id = Number(req.params.id)
   const { name, duration, price } = req.body
@@ -65,6 +66,9 @@ const updateService = (req, res) => {
       res.status(404).json({ message: 'Service not found' })
     }
   } catch(error) {
+    if (error.message.includes('UNIQUE constraint failed: services.name')) {
+      return res.status(409).json({ error: 'Service with this name already exists' })
+    }
     console.error('Error updating a service: ', error?.message)
     res.status(500).json({ error: 'Failed to update a service' })
   }

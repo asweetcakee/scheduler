@@ -127,6 +127,40 @@ const createAppointment = (req, res) => {
     return { newAppointmentId, runningTotal }
   })
   try {
+    // staff exists and is active
+    const staff = db.prepare(`SELECT * FROM staff WHERE id = ? AND isActive = 1`).get(staffId)
+    if (!staff) return res.status(400).json({ error: 'Staff member not found or inactive' })
+
+    // staff has a schedule on this date
+    const schedule = db.prepare(`
+      SELECT * FROM staff_schedules 
+      WHERE staffId = ? AND date = ? AND isCancelled = 0
+    `).get(staffId, date)
+    if (!schedule) return res.status(400).json({ error: 'Staff member is not scheduled on this date' })
+    
+    // appointment fits within shift hours
+    if (startTime < schedule.shiftStart || endTime > schedule.shiftEnd) {
+      return res.status(400).json({ error: 'Appointment falls outside staff working hours' })
+    }
+
+    // no time slot conflicts
+    const conflict = db.prepare(`
+      SELECT id FROM appointments
+      WHERE staffId = ? AND date = ? AND status != 'cancelled'
+        AND startTime < ? AND endTime > ?
+    `).get(staffId, date, endTime, startTime)
+    if (conflict) return res.status(409).json({ error: 'Time slot conflicts with an existing appointment' })
+    
+    // services exist and are active
+    const serviceIds = services.map(s => s.serviceId)
+    const placeholders = serviceIds.map(() => '?').join(',')
+    const foundServices = db.prepare(`
+      SELECT id FROM services WHERE id IN (${placeholders}) AND isActive = 1
+    `).all(...serviceIds)
+    if (foundServices.length !== serviceIds.length) {
+      return res.status(400).json({ error: 'One or more services are invalid or inactive' })
+    }
+
     const { newAppointmentId, runningTotal } = insertTransaction({ 
       clientId, staffId, date, startTime, endTime, 
       clientProvidedTotal, status, isConfirmed, adminNotes 
@@ -220,6 +254,40 @@ const updateAppointment = (req, res) => {
   })
 
   try {
+    // staff exists and is active
+    const staff = db.prepare(`SELECT * FROM staff WHERE id = ? AND isActive = 1`).get(staffId)
+    if (!staff) return res.status(400).json({ error: 'Staff member not found or inactive' })
+
+    // staff has a schedule on this date
+    const schedule = db.prepare(`
+      SELECT * FROM staff_schedules 
+      WHERE staffId = ? AND date = ? AND isCancelled = 0
+    `).get(staffId, date)
+    if (!schedule) return res.status(400).json({ error: 'Staff member is not scheduled on this date' })
+    
+    // appointment fits within shift hours
+    if (startTime < schedule.shiftStart || endTime > schedule.shiftEnd) {
+      return res.status(400).json({ error: 'Appointment falls outside staff working hours' })
+    }
+
+    // no time slot conflicts
+    const conflict = db.prepare(`
+      SELECT id FROM appointments
+      WHERE staffId = ? AND date = ? AND status != 'cancelled'
+        AND startTime < ? AND endTime > ?
+    `).get(staffId, date, endTime, startTime)
+    if (conflict) return res.status(409).json({ error: 'Time slot conflicts with an existing appointment' })
+    
+    // services exist and are active
+    const serviceIds = services.map(s => s.serviceId)
+    const placeholders = serviceIds.map(() => '?').join(',')
+    const foundServices = db.prepare(`
+      SELECT id FROM services WHERE id IN (${placeholders}) AND isActive = 1
+    `).all(...serviceIds)
+    if (foundServices.length !== serviceIds.length) {
+      return res.status(400).json({ error: 'One or more services are invalid or inactive' })
+    }
+
     const runningTotal = updateTransaction(id, { 
       clientId, staffId, date, startTime, endTime, status, isConfirmed, adminNotes 
     }, services)

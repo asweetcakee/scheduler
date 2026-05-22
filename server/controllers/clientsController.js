@@ -14,11 +14,15 @@ const getClientById = (req, res) => {
   const id = Number(req.params.id)
   try {
     const client = db.prepare(`SELECT * FROM clients WHERE id = ?`).get(id)
-    if (client) {
-      res.status(200).json(client)
-    } else {
-      res.status(404).json({ message: 'Client not found' })
-    }
+    if (!client) return res.status(404).json({ message: 'Client not found' })
+
+    const discounts = db.prepare(`
+      SELECT serviceId, discountPercent 
+      FROM client_discounts 
+      WHERE clientId = ?
+    `).all(id)
+
+    res.status(200).json({ ...client, discounts })
   } catch (error) {
     console.error('Error fetching client: ', error?.message)
     res.status(500).json({ error: 'Failed to fetch client' })
@@ -29,10 +33,7 @@ const getClientById = (req, res) => {
 const searchClientByPhone = (req, res) => {
   const { phone } = req.query // ?phone=77071234567
   
-  if (!phone) return res
-      .status(400).json({ 
-          error: 'Phone parameter is required. Use ?phone=77071234567'
-      })
+  if (!phone) return res.status(400).json({ error: 'Phone parameter is required' })
   
   try {
     const client = db.prepare(`SELECT * FROM clients WHERE phone = ?`).get(phone)
