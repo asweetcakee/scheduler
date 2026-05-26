@@ -2,11 +2,8 @@ const db = require('../db')
 
 // date(date) = date(?) makes sure the date has the correct input: 2026-05-14
 const getNextScheduleForStaff = (req, res) => {
-  const id = Number(req.params.id)
-  const { from } = req.query // ?from=YYYY-MM-DD
-
-  if (!from) return res.status(400).json({ error: 'from parameter is required. Use ?from=YYYY-MM-DD' })
-  
+  const { id } = req.params
+  const { from } = req.query // ?from=YYYY-MM-DD  
   try {
     const schedule = db.prepare(`
       SELECT * FROM staff_schedules
@@ -26,13 +23,13 @@ const getNextScheduleForStaff = (req, res) => {
 }
 
 const createScheduleForStaff = (req, res) => {
-  const staffId = Number(req.params.id)
+  const { id: staffId } = req.params
   const { date, shiftStart, shiftEnd, isCancelled, notes } = req.body
   try {
     const result = db.prepare(
       `INSERT INTO staff_schedules (staffId, date, shiftStart, shiftEnd, isCancelled, notes)
       VALUES (?, ?, ?, ?, ?, ?)`
-    ).run(staffId, date, shiftStart, shiftEnd, isCancelled ?? 0, notes ?? '')
+    ).run(staffId, date, shiftStart, shiftEnd, isCancelled ? 1 : 0, notes ?? '')
     res.status(201).json({
       id: result.lastInsertRowid,
       staffId, date, shiftStart, shiftEnd, isCancelled, notes
@@ -50,15 +47,14 @@ const createScheduleForStaff = (req, res) => {
 }
 
 const updateSchedule = (req, res) => {
-  const staffId = Number(req.params.id)
+  const { id: staffId, date } = req.params
   const { shiftStart, shiftEnd, isCancelled, notes } = req.body
-  const { date } = req.params
   try {
     const result = db.prepare(
       `UPDATE staff_schedules
       SET shiftStart = ?, shiftEnd = ?, isCancelled = ?, notes = ?
       WHERE staffId = ? AND date = ?`
-    ).run(shiftStart, shiftEnd, isCancelled ?? 0, notes ?? '', staffId, date)
+    ).run(shiftStart, shiftEnd, isCancelled ? 1 : 0, notes ?? '', staffId, date)
     if (result.changes === 0) {
       return res.status(404).json({ error: 'No schedule found for this staff member on this date' })
     }
@@ -67,14 +63,13 @@ const updateSchedule = (req, res) => {
     if (error?.message.includes('CHECK constraint failed')) {
       return res.status(400).json({ error: 'The shift end time must be later than the start time' })
     }
-    console.error('Error creating schedule: ', error?.message)
-    res.status(500).json({ error: 'Failed to create schedule' })
+    console.error('Error updating schedule: ', error?.message)
+    res.status(500).json({ error: 'Failed to update schedule' })
   }
 }
 
 const deleteSchedule = (req, res) => {
-  const staffId = Number(req.params.id)
-  const { date } = req.params
+  const { id: staffId, date } = req.params
   try {
     const result = db.prepare(`DELETE FROM staff_schedules WHERE staffId = ? AND date = ?`).run(staffId, date)
     if (result.changes <= 0) {

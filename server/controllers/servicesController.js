@@ -1,4 +1,5 @@
 const db = require('../db')
+const { toTiyins } = require('../utils/currency')
 
 const getAllServices = (req, res) => {
   try {
@@ -11,7 +12,7 @@ const getAllServices = (req, res) => {
 }
 
 const getServiceById = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const service = db.prepare('SELECT * FROM services WHERE id = ?').get(id)
     if(service) {
@@ -25,12 +26,14 @@ const getServiceById = (req, res) => {
   }
 }
 
+// DB stores prices in INT so the price must be converted from FLOAT to INT
 const createService = (req, res) => {
   const { name, duration, price } = req.body
+  const convertedPrice = toTiyins(price)
   try {
     const result = db.prepare(
       `INSERT INTO services(name, duration, price) VALUES (?, ?, ?)`
-    ).run(name, duration, price)
+    ).run(name, duration, convertedPrice)
     
     res.status(201).json({ 
       id: result.lastInsertRowid, 
@@ -47,24 +50,23 @@ const createService = (req, res) => {
   }
 }
 
+// DB stores prices in INT so the price must be converted from FLOAT to INT
 const updateService = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   const { name, duration, price } = req.body
+  const convertedPrice = toTiyins(price)
   try {
     const result = db.prepare(
       `UPDATE services 
       SET name = ?, duration = ?, price = ?
       WHERE id = ?`
-    ).run(name, duration, price, id)
+    ).run(name, duration, convertedPrice, id)
 
-    if (result.changes > 0) {
-      res.status(200).json({
-        message: 'Service updated successfully',
-        id, name, duration, price
-      })
-    } else {
-      res.status(404).json({ message: 'Service not found' })
-    }
+    if (result.changes === 0) return res.status(404).json({ message: 'Service not found' })
+    res.status(200).json({
+      message: 'Service updated successfully',
+      id, name, duration, price
+    })
   } catch(error) {
     if (error.message.includes('UNIQUE constraint failed: services.name')) {
       return res.status(409).json({ error: 'Service with this name already exists' })
@@ -75,7 +77,7 @@ const updateService = (req, res) => {
 }
 
 const deleteService = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const result = db.prepare(
       `DELETE FROM services WHERE id = ?`

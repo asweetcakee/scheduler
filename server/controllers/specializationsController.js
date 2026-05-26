@@ -10,12 +10,8 @@ const getAllSpecializations = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const createSpecialization = (req, res) => {
   const { name } = req.body
-
-  if (!name) return res.status(400).json({ error: 'Name is required' })
-
   try {
     const result = db.prepare(`INSERT INTO specializations (name) VALUES (?)`).run(name)
     res.status(201).json({ id: result.lastInsertRowid, name })
@@ -28,9 +24,8 @@ const createSpecialization = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const updateSpecializationById = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   const { name } = req.body
   try {
     const result = db.prepare(`UPDATE specializations SET name = ? WHERE id = ?`).run(name, id)
@@ -48,7 +43,7 @@ const updateSpecializationById = (req, res) => {
 }
 
 const deleteSpecializationById = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const result = db.prepare(`DELETE FROM specializations WHERE id = ?`).run(id)
     if (result.changes === 0) {

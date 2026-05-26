@@ -1,22 +1,25 @@
 const { getNextScheduleForStaff, createScheduleForStaff, updateSchedule, deleteSchedule } = require('../controllers/schedulesController')
 const { getAllStaff, getStaffById, createStaffMember, updateStaffMember, deleteStaffMember, searchStaffMemberByPhone } = require('../controllers/staffController')
+const { createScheduleSchema, updateScheduleSchema } = require('../schemas/scheduleSchema')
+const { staffDateQuerySchema, staffPhoneQuerySchema, staffParamsSchema, createStaffSchema, updateStaffSchema } = require('../schemas/staffSchema')
+const { validateQuery, validateParams, validateBody } = require('../utils/middleware')
 
 const staffRouter = require('express').Router()
 
-staffRouter.get('/', getAllStaff)
+staffRouter.get('/', validateQuery(staffDateQuerySchema), getAllStaff)
 
-staffRouter.get('/search', searchStaffMemberByPhone) // ?phone=77071234567
+staffRouter.get('/search', validateQuery(staffPhoneQuerySchema), searchStaffMemberByPhone) // ?phone=77071234567
 
-staffRouter.get('/:id', getStaffById)
-staffRouter.get('/:id/schedules', getNextScheduleForStaff)
+staffRouter.get('/:id', validateParams(staffParamsSchema), getStaffById)
+staffRouter.get('/:id/schedules', validateParams(staffParamsSchema), validateQuery(staffDateQuerySchema), getNextScheduleForStaff)
 
-staffRouter.post('/', createStaffMember)
-staffRouter.post('/:id/schedules', createScheduleForStaff)
+staffRouter.post('/', validateBody(createStaffSchema), createStaffMember)
+staffRouter.post('/:id/schedules', validateParams(staffParamsSchema), validateBody(createScheduleSchema), createScheduleForStaff)
 
-staffRouter.put('/:id', updateStaffMember)
-staffRouter.put('/:id/schedules/:date', updateSchedule)
+staffRouter.put('/:id', validateParams(staffParamsSchema), validateBody(updateStaffSchema), updateStaffMember)
+staffRouter.put('/:id/schedules/:date', validateParams(staffParamsSchema), validateQuery(staffDateQuerySchema), validateBody(updateScheduleSchema), updateSchedule)
 
-staffRouter.delete('/:id', deleteStaffMember)
-staffRouter.delete('/:id/schedules/:date', deleteSchedule)
+staffRouter.delete('/:id', validateParams(staffParamsSchema), deleteStaffMember)
+staffRouter.delete('/:id/schedules/:date', validateParams(staffParamsSchema), validateQuery(staffDateQuerySchema), deleteSchedule)
 
 module.exports = staffRouter

@@ -11,7 +11,7 @@ const getAllDiscounts = (req, res) => {
 }
 
 const getClientDiscounts = (req, res) => {
-  const clientId = Number(req.params.id)
+  const { id: clientId } = req.params
   try {
     const discounts = db.prepare(`SELECT * FROM client_discounts WHERE clientId = ?`).all(clientId)
     res.status(200).json(discounts)
@@ -21,16 +21,9 @@ const getClientDiscounts = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const createClientDiscount = (req, res) => {
-  const clientId = Number(req.params.id)
-  const { serviceId } = req.body
-  const discountPercent = req.body.discountPercent ?? 0
-
-  if (!clientId || !serviceId) {
-    return res.status(400).json({ error: 'clientId and serviceId are required' })
-  }
-
+  const { id: clientId } = req.params
+  const { serviceId, discountPercent } = req.body
   try {
     const result = db.prepare(`INSERT INTO client_discounts (clientId, serviceId, discountPercent) VALUES (?, ?, ?)`).run(
       clientId, serviceId, discountPercent
@@ -49,16 +42,9 @@ const createClientDiscount = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const updateClientDiscount = (req, res) => {
-  const clientId = Number(req.params.id)
-  const serviceId = Number(req.params.serviceId)
+  const { id: clientId, serviceId } = req.params
   const { discountPercent } = req.body
-
-  if (discountPercent === undefined || discountPercent < 0 || discountPercent > 100) {
-    return res.status(400).json({ error: 'Valid discountPercent (0-100) is required' })
-  }
-
   try {
     const result = db.prepare(
       `UPDATE client_discounts 
@@ -68,7 +54,7 @@ const updateClientDiscount = (req, res) => {
     if (result.changes === 0) {
       return res.status(404).json({ error: 'Discount record not found this client and service' })
     }
-    res.status(200).json({ message: 'Discount updated successfully' })
+    res.status(200).json({ message: 'Discount updated successfully', clientId, serviceId, discountPercent })
   } catch (error) {
     if (error.message.includes('CHECK constraint failed')) {
       return res.status(400).json({ error: 'Discount must be between 0 and 100' })
@@ -79,8 +65,7 @@ const updateClientDiscount = (req, res) => {
 }
 
 const deleteClientDiscount = (req, res) => {
-  const clientId = Number(req.params.id)
-  const serviceId = Number(req.params.serviceId)
+  const { id: clientId, serviceId } = req.params
   try {
     const result = db.prepare(`DELETE FROM client_discounts WHERE clientId = ? AND serviceId = ?`).run(clientId, serviceId)
     if (result.changes === 0) return res.status(404).json({ error: 'Discount not found' })

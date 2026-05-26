@@ -55,12 +55,15 @@ const getAllStaff = (req, res) => {
 }
 
 const getStaffById = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const staffMember = db.prepare(`SELECT * FROM staff WHERE id = ?`).get(id)
     if (!staffMember) return res.status(404).json({ error: 'Staff member not found' })
     
-    staffMember.specializations = getSpecializationsForStaff(id)
+    const allSpecializations = getAllSpecializations()
+    staffMember.specializations = allSpecializations
+      .filter(spec => spec.staffId === staffMember.id)
+      .map(spec => ({ id: spec.id, name: spec.name }))
     
     res.status(200).json(staffMember)
   } catch (error) {
@@ -69,20 +72,16 @@ const getStaffById = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const searchStaffMemberByPhone = (req, res) => {
   const { phone } = req.query // ?phone=77071234567
-  
-  if (!phone) return res
-      .status(400).json({ 
-          error: 'Phone parameter is required. Use ?phone=77071234567'
-      })
-  
   try {
     const staffMember = db.prepare(`SELECT * FROM staff WHERE phone = ?`).get(phone)
     if (!staffMember) return res.status(404).json({ message: "Staff member not found" })
     
-    staffMember.specializations = getSpecializationsForStaff(staffMember.id)
+    const allSpecializations = getAllSpecializations()
+    staffMember.specializations = allSpecializations
+      .filter(spec => spec.staffId === staffMember.id)
+      .map(spec => ({ id: spec.id, name: spec.name }))
 
     res.status(200).json(staffMember)
   } catch (error) {
@@ -91,7 +90,6 @@ const searchStaffMemberByPhone = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const createStaffMember = (req, res) => {
   const { name, phone, isActive, specializationIds } = req.body
   const insertTransaction = db.transaction((memberData, specIds) => {
@@ -99,7 +97,7 @@ const createStaffMember = (req, res) => {
     const info = db.prepare(`
       INSERT INTO staff (name, phone, isActive) 
       VALUES (?, ?, ?)
-    `).run(memberData.name, memberData.phone, memberData.isActive ?? 1)
+    `).run(memberData.name, memberData.phone, memberData.isActive ? 1 : 0)
 
     const newStaffId = info.lastInsertRowid
 
@@ -127,15 +125,14 @@ const createStaffMember = (req, res) => {
   }
 }
 
-// TODO: validate data with ZOD schema before inserting it
 const updateStaffMember= (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   const { name, phone, isActive, specializationIds } = req.body
   const updateTransaction = db.transaction((staffId, memberData, specIds) => {
     
     const result = db.prepare(`
       UPDATE staff SET name = ?, phone = ?, isActive = ? WHERE id = ?
-    `).run(memberData.name, memberData.phone, memberData.isActive, staffId)
+    `).run(memberData.name, memberData.phone, memberData.isActive ? 1 : 0, staffId)
 
     if (result.changes === 0) throw new Error('NOT_FOUND')
 
@@ -156,13 +153,16 @@ const updateStaffMember= (req, res) => {
     res.status(200).json({ message: 'Updated successfully', id, specializationIds })
   } catch (error) {
     if (error?.message === 'NOT_FOUND') return res.status(404).json({ error: 'Staff not found' })
+    if (error.message.includes('UNIQUE constraint failed: staff.phone')) {
+      return res.status(409).json({ error: 'Phone number already registered' })
+    }
     console.error('Error updating staff:', error.message)
     res.status(500).json({ error: 'Failed to update staff' })
   }
 }
 
 const deleteStaffMember = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const result = db.prepare(`DELETE FROM staff WHERE id = ?`).run(id)
     

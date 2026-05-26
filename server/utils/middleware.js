@@ -61,16 +61,42 @@ const errorHandler = (err, req, res, next) => {
 }
 
 /* 4 */
-const validate = (schema) => (req, res, next) => {
+const validateBody = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body)
-  if (!result?.success) {
+  if (!result.success) {
     return res.status(400).json({
       error: 'Validation error',
-      details: result?.error?.errors
+      details: result.error.errors
     })
   }
-  req.body = result?.data
+  req.body = result.data
   next()
 }
 
-module.exports = { httpLogger, unknownEndpoint, errorHandler, validate }
+/* 5 */
+const validateQuery = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.query)
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: 'Invalid query parameters', 
+      details: result.error.errors 
+    })
+  }
+  req.query = result.data
+  next()
+}
+
+/* 6 */
+const validateParams = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.params)
+  if (!result.success) {
+    return res.status(400).json({ 
+      error: 'Invalid parameters', 
+      details: result.error.errors 
+    })
+  }
+  req.params = result.data
+  next()
+}
+
+module.exports = { httpLogger, unknownEndpoint, errorHandler, validateBody, validateQuery, validateParams }
