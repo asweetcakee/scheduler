@@ -1,4 +1,5 @@
 const db = require('../db')
+const { toTiyins, toTenge } = require('../utils/currency')
 
 const BASE_QUERY = `
   SELECT 
@@ -37,7 +38,7 @@ const getAllAppointments = (req, res) => {
   try {
     const appointments = date
       ? db.prepare(BASE_QUERY + ` WHERE date(date) = date(?) AND a.status != 'cancelled' ORDER BY startTime ASC`).all(date)
-      : db.prepare(BASE_QUERY).all()
+      : db.prepare(BASE_QUERY).all() // intentional 'cancelled' allowance - unfiltered for admin/reporting use
     res.status(200).json(getAppointmentsWithServices(appointments))
   } catch (error) {
     console.error('Error fetching appointments: ', error?.message)
@@ -46,7 +47,7 @@ const getAllAppointments = (req, res) => {
 }
 
 const getAppointmentById = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const appointment = db.prepare(BASE_QUERY + ` WHERE a.id = ?`).get(id)
     if (!appointment) {
@@ -61,9 +62,6 @@ const getAppointmentById = (req, res) => {
     res.status(500).json({ error: 'Failed to fetch appointment' })
   }
 }
-
-const toTiyins = (tenge) => Math.round(tenge * 100)
-const toTenge = (tiyins) => (tiyins / 100).toFixed(2)
 
 // Prices from frontend arrive as tenge floats - converted to tiyins (integers) before any math or DB writes
 // actualRevenue is never trusted from frontend - backend recomputes it from services as the source of truth
@@ -178,25 +176,13 @@ const createAppointment = (req, res) => {
     if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
       return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
     }
-    if (error?.message.includes('endTime > startTime')) {
-      return res.status(400).json({ message: 'The end time must be later than the start time' })
-    } 
-    if (error?.message.includes('actualRevenue >= 0')) {
-      return res.status(400).json({ message: 'Actual revenue must be 0 or greater' })
-    } 
-    if (error?.message.includes('isConfirmed IN (0, 1)')) {
-      return res.status(400).json({ message: 'isConfirmed must be 1 (true) or 0 (false)' })
-    }
-    if (error?.message.includes('status IN')) {
-      return res.status(400).json({ message: 'Status must be \'scheduled\', \'completed\', or \'cancelled\'' })
-    }
     console.error('Error creating an appointment: ', error?.message)
     res.status(500).json({ error: 'Failed to create an appointment' })
   }
 }
 
 const updateAppointment = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   const clientId = req.body.clientId ?? null
   const { staffId, date, startTime, endTime, status, isConfirmed, adminNotes } = req.body
   const clientProvidedTotal = toTiyins(req.body.actualRevenue)
@@ -275,6 +261,7 @@ const updateAppointment = (req, res) => {
       SELECT id FROM appointments
       WHERE staffId = ? AND date = ? AND status != 'cancelled'
         AND startTime < ? AND endTime > ?
+        AND id != ?
     `).get(staffId, date, endTime, startTime)
     if (conflict) return res.status(409).json({ error: 'Time slot conflicts with an existing appointment' })
     
@@ -307,25 +294,13 @@ const updateAppointment = (req, res) => {
     if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
       return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
     }
-    if (error?.message.includes('endTime > startTime')) {
-      return res.status(400).json({ message: 'The end time must be later than the start time' })
-    }
-    if (error?.message.includes('actualRevenue >= 0')) {
-      return res.status(400).json({ message: 'Actual revenue must be 0 or greater' })
-    }
-    if (error?.message.includes('isConfirmed IN (0, 1)')) {
-      return res.status(400).json({ message: 'isConfirmed must be 1 (true) or 0 (false)' })
-    }
-    if (error?.message.includes('status IN')) {
-      return res.status(400).json({ message: 'Status must be \'scheduled\', \'completed\', or \'cancelled\'' })
-    }
     console.error('Error updating appointment:', error?.message)
     res.status(500).json({ error: 'Failed to update appointment' })
   }
 }
 
 const deleteAppointment = (req, res) => {
-  const id = Number(req.params.id)
+  const { id } = req.params
   try {
     const result = db.prepare(`DELETE FROM appointments WHERE id = ?`).run(id)
 

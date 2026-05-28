@@ -21,4 +21,12 @@ const discountPercentField = z.number().int()
 
 const idParamsSchema = z.object({ id: idParam })
 
-module.exports = { dateQuery, timeField, idParam, serviceIdParam, nameField, phoneField, discountPercentField, idParamsSchema }
+const isEndAfterStart = (startField, endField) => (data) => {
+  const [startH, startM] = data[startField].split(':').map(Number)
+  const [endH, endM] = data[endField].split(':').map(Number)
+  const startTime = startH * 60 + startM
+  const endTime = endH * 60 + endM
+  return endTime > startTime
+}
+
+module.exports = { dateQuery, timeField, idParam, serviceIdParam, nameField, phoneField, discountPercentField, idParamsSchema, isEndAfterStart }

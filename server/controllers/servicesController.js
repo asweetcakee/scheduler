@@ -1,9 +1,9 @@
-const db = require('../db')
+const serviceRepository = require('../repositories/serviceRepository')
 const { toTiyins } = require('../utils/currency')
 
 const getAllServices = (req, res) => {
   try {
-    const services = db.prepare('SELECT * FROM services').all()
+    const services = serviceRepository.queryServices()
     res.status(200).json(services)
   } catch (error) {
     console.error('Error fetching services: ', error?.message)
@@ -14,12 +14,9 @@ const getAllServices = (req, res) => {
 const getServiceById = (req, res) => {
   const { id } = req.params
   try {
-    const service = db.prepare('SELECT * FROM services WHERE id = ?').get(id)
-    if(service) {
-      res.status(200).json(service)
-    } else {
-      res.status(404).json({ message: 'Service not found' })
-    }
+    const service = serviceRepository.queryServiceById(id)
+    if(!service) return res.status(404).json({ message: 'Service not found' })
+    res.status(200).json(service)
   } catch(error) {
     console.error('Error fetching service: ', error?.message)
     res.status(500).json({ error: 'Failed to fetch service' })
@@ -31,10 +28,7 @@ const createService = (req, res) => {
   const { name, duration, price } = req.body
   const convertedPrice = toTiyins(price)
   try {
-    const result = db.prepare(
-      `INSERT INTO services(name, duration, price) VALUES (?, ?, ?)`
-    ).run(name, duration, convertedPrice)
-    
+    const result = serviceRepository.insertService(name, duration, convertedPrice)
     res.status(201).json({ 
       id: result.lastInsertRowid, 
       name, 
@@ -56,12 +50,7 @@ const updateService = (req, res) => {
   const { name, duration, price } = req.body
   const convertedPrice = toTiyins(price)
   try {
-    const result = db.prepare(
-      `UPDATE services 
-      SET name = ?, duration = ?, price = ?
-      WHERE id = ?`
-    ).run(name, duration, convertedPrice, id)
-
+    const result = serviceRepository.updateService(name, duration, convertedPrice, id)
     if (result.changes === 0) return res.status(404).json({ message: 'Service not found' })
     res.status(200).json({
       message: 'Service updated successfully',
@@ -79,15 +68,9 @@ const updateService = (req, res) => {
 const deleteService = (req, res) => {
   const { id } = req.params
   try {
-    const result = db.prepare(
-      `DELETE FROM services WHERE id = ?`
-    ).run(id)
-
-    if(result.changes > 0){
-      res.status(200).json({ message: `Successfully deleted service under id: ${id}` })
-    } else {
-      res.status(404).json({ message: 'Service not found' })
-    }
+    const result = serviceRepository.deleteService(id)
+    if(result.changes === 0) return res.status(404).json({ message: 'Service not found' })
+    res.status(200).json({ message: `Successfully deleted service under id: ${id}` })
   } catch(error) {
     console.error('Error deleting a service: ', error?.message)
     res.status(500).json({ error: 'Failed to delete a service' })

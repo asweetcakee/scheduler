@@ -1,8 +1,8 @@
-const db = require('../db')
+const clientRepository = require('../repositories/clientRepository')
 
 const getAllClients = (req, res) => {
   try {
-    const clients = db.prepare(`SELECT * FROM clients`).all()
+    const clients = clientRepository.queryClients()
     res.status(200).json(clients)
   } catch (error) {
     console.error('Error fetching clients: ', error?.message)
@@ -13,15 +13,9 @@ const getAllClients = (req, res) => {
 const getClientById = (req, res) => {
   const { id } = req.params
   try {
-    const client = db.prepare(`SELECT * FROM clients WHERE id = ?`).get(id)
+    const client = clientRepository.queryClientById(id)
     if (!client) return res.status(404).json({ message: 'Client not found' })
-
-    const discounts = db.prepare(`
-      SELECT serviceId, discountPercent 
-      FROM client_discounts 
-      WHERE clientId = ?
-    `).all(id)
-
+    const discounts = queryDiscountsByClientId(id)
     res.status(200).json({ ...client, discounts })
   } catch (error) {
     console.error('Error fetching client: ', error?.message)
@@ -32,9 +26,8 @@ const getClientById = (req, res) => {
 const searchClientByPhone = (req, res) => {
   const { phone } = req.query // ?phone=77071234567  
   try {
-    const client = db.prepare(`SELECT * FROM clients WHERE phone = ?`).get(phone)
-    if (!client) return res.status(404).json({ message: "Client not found" })
-      
+    const client = clientRepository.queryClientByPhone(phone)
+    if (!client) return res.status(404).json({ message: 'Client not found' })
     res.status(200).json(client)
   } catch (error) {
     console.error('Error fetching client: ', error?.message)
@@ -46,14 +39,10 @@ const searchClientByPhone = (req, res) => {
 const createClient = (req, res) => {
   const { phone } = req.body
   const name = req.body.name || `Клиент-${phone.slice(-4)}`
-
   const isRegular = req.body.isRegular ? 1 : 0
   const isAllergic = req.body.isAllergic ? 1 : 0
   try {
-    const result = db.prepare(
-      `INSERT INTO clients(name, phone, isRegular, isAllergic) VALUES (?, ?, ?, ?)`
-    ).run(name, phone, isRegular, isAllergic)
-
+    const result = clientRepository.insertClient(name, phone, isRegular, isAllergic)
     res.status(201).json({
       id: result.lastInsertRowid,
       name, phone, isRegular, isAllergic
@@ -71,14 +60,8 @@ const updateClient = (req, res) => {
   const { id } = req.params
   const { name, phone, isRegular, isAllergic } = req.body
   try {
-    const result = db.prepare(
-      `UPDATE clients
-      SET name = ?, phone = ?, isRegular = ?, isAllergic = ?
-      WHERE id = ?`
-    ).run(name, phone, isRegular, isAllergic, id)
-    
+    const result = clientRepository.updateClient(name, phone, isRegular, isAllergic, id)    
     if (result.changes === 0) return res.status(404).json({ message: 'Client not found' })
-      
     res.status(200).json({ 
       message: 'Client updated successfully',
       id, name, phone, isRegular, isAllergic
@@ -95,9 +78,8 @@ const updateClient = (req, res) => {
 const deleteClient = (req, res) => {
   const { id } = req.params
   try {
-    const result = db.prepare(`DELETE FROM clients WHERE id = ?`).run(id)
+    const result = clientRepository.deleteClient(id)
     if(result.changes === 0) return res.status(404).json({ message: 'Client not found' })
-
     res.status(200).json({ message: 'Client deleted successfully' })
   } catch (error) {
     console.error('Error deleting a client: ', error?.message)

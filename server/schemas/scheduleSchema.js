@@ -1,13 +1,5 @@
 const { z } = require('zod/v4')
-const { dateQuery, timeField, idParam } = require('./shared')
-
-const isEndAfterStart = (data) => {
-  const [startH, startM] = data.shiftStart.split(':').map(Number)
-  const [endH, endM] = data.shiftEnd.split(':').map(Number)
-  const startTime = startH * 60 + startM
-  const endTime = endH * 60 + endM
-  return endTime > startTime
-}
+const { dateQuery, timeField, idParam, isEndAfterStart } = require('./shared')
 
 const createScheduleSchema = z.object({
   date: dateQuery,
@@ -15,14 +7,14 @@ const createScheduleSchema = z.object({
   shiftEnd: timeField,
   isCancelled: z.boolean().default(false),
   notes: z.string().max(255).nullable().default(null)
-}).refine(isEndAfterStart, { error: 'shiftEnd must be later than shiftStart' })
+}).refine(isEndAfterStart('shiftStart', 'shiftEnd'), { error: 'shiftEnd must be later than shiftStart' })
 
 const updateScheduleSchema = z.object({
   shiftStart: timeField,
   shiftEnd: timeField,
   isCancelled: z.boolean().default(false),
   notes: z.string().max(255).nullable().default(null)
-}).refine(isEndAfterStart, { error: 'shiftEnd must be later than shiftStart' })
+}).refine(isEndAfterStart('shiftStart', 'shiftEnd'), { error: 'shiftEnd must be later than shiftStart' })
 
 module.exports = {
   createScheduleSchema,
