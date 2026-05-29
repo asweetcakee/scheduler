@@ -15,7 +15,7 @@ const getServiceById = (req, res) => {
   const { id } = req.params
   try {
     const service = serviceRepository.queryServiceById(id)
-    if(!service) return res.status(404).json({ message: 'Service not found' })
+    if(!service) return res.status(404).json({ error: 'Service not found' })
     res.status(200).json(service)
   } catch(error) {
     console.error('Error fetching service: ', error?.message)
@@ -51,7 +51,7 @@ const updateService = (req, res) => {
   const convertedPrice = toTiyins(price)
   try {
     const result = serviceRepository.updateService(name, duration, convertedPrice, id)
-    if (result.changes === 0) return res.status(404).json({ message: 'Service not found' })
+    if (result.changes === 0) return res.status(404).json({ error: 'Service not found' })
     res.status(200).json({
       message: 'Service updated successfully',
       id, name, duration, price
@@ -69,7 +69,7 @@ const deleteService = (req, res) => {
   const { id } = req.params
   try {
     const result = serviceRepository.deleteService(id)
-    if(result.changes === 0) return res.status(404).json({ message: 'Service not found' })
+    if(result.changes === 0) return res.status(404).json({ error: 'Service not found' })
     res.status(200).json({ message: `Successfully deleted service under id: ${id}` })
   } catch(error) {
     console.error('Error deleting a service: ', error?.message)

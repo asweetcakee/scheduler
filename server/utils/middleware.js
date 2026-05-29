@@ -66,7 +66,10 @@ const validateBody = (schema) => (req, res, next) => {
   if (!result.success) {
     return res.status(400).json({
       error: 'Validation error',
-      details: result.error.errors
+      details: result.error.issues.map(i => ({
+        field: i.path.join('.'),
+        message: i.message
+      }))
     })
   }
   req.body = result.data
@@ -79,7 +82,10 @@ const validateQuery = (schema) => (req, res, next) => {
   if (!result.success) {
     return res.status(400).json({ 
       error: 'Invalid query parameters', 
-      details: result.error.errors 
+      details: result.error.issues.map(i => ({
+        field: i.path.join('.'),
+        message: i.message
+      }))
     })
   }
   req.query = result.data
@@ -92,7 +98,10 @@ const validateParams = (schema) => (req, res, next) => {
   if (!result.success) {
     return res.status(400).json({ 
       error: 'Invalid parameters', 
-      details: result.error.errors 
+      details: result.error.issues.map(i => ({
+        field: i.path.join('.'),
+        message: i.message
+      }))
     })
   }
   req.params = result.data

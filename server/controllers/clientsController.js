@@ -14,7 +14,7 @@ const getClientById = (req, res) => {
   const { id } = req.params
   try {
     const client = clientRepository.queryClientById(id)
-    if (!client) return res.status(404).json({ message: 'Client not found' })
+    if (!client) return res.status(404).json({ error: 'Client not found' })
     const discounts = queryDiscountsByClientId(id)
     res.status(200).json({ ...client, discounts })
   } catch (error) {
@@ -27,7 +27,7 @@ const searchClientByPhone = (req, res) => {
   const { phone } = req.query // ?phone=77071234567  
   try {
     const client = clientRepository.queryClientByPhone(phone)
-    if (!client) return res.status(404).json({ message: 'Client not found' })
+    if (!client) return res.status(404).json({ error: 'Client not found' })
     res.status(200).json(client)
   } catch (error) {
     console.error('Error fetching client: ', error?.message)
@@ -61,7 +61,7 @@ const updateClient = (req, res) => {
   const { name, phone, isRegular, isAllergic } = req.body
   try {
     const result = clientRepository.updateClient(name, phone, isRegular, isAllergic, id)    
-    if (result.changes === 0) return res.status(404).json({ message: 'Client not found' })
+    if (result.changes === 0) return res.status(404).json({ error: 'Client not found' })
     res.status(200).json({ 
       message: 'Client updated successfully',
       id, name, phone, isRegular, isAllergic
@@ -79,7 +79,7 @@ const deleteClient = (req, res) => {
   const { id } = req.params
   try {
     const result = clientRepository.deleteClient(id)
-    if(result.changes === 0) return res.status(404).json({ message: 'Client not found' })
+    if(result.changes === 0) return res.status(404).json({ error: 'Client not found' })
     res.status(200).json({ message: 'Client deleted successfully' })
   } catch (error) {
     console.error('Error deleting a client: ', error?.message)

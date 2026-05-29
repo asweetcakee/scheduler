@@ -1,8 +1,8 @@
-const db = require('../db')
+const specializationRepository = require('../repositories/specializationRepository')
 
 const getAllSpecializations = (req, res) => {
   try {
-    const specializations = db.prepare(`SELECT * FROM specializations ORDER BY name ASC`).all()
+    const specializations = specializationRepository.querySpecializations()
     res.status(200).json(specializations)
   } catch (error) {
     console.error('Error fetching specializations', error?.message)
@@ -13,7 +13,7 @@ const getAllSpecializations = (req, res) => {
 const createSpecialization = (req, res) => {
   const { name } = req.body
   try {
-    const result = db.prepare(`INSERT INTO specializations (name) VALUES (?)`).run(name)
+    const result = specializationRepository.insertSpecialization(name)
     res.status(201).json({ id: result.lastInsertRowid, name })
   } catch (error) {
     if (error.message.includes('UNIQUE constraint failed')) {
@@ -28,9 +28,9 @@ const updateSpecializationById = (req, res) => {
   const { id } = req.params
   const { name } = req.body
   try {
-    const result = db.prepare(`UPDATE specializations SET name = ? WHERE id = ?`).run(name, id)
+    const result = specializationRepository.updateSpecialization(id, name)
     if (result.changes === 0) {
-      return res.status(404).json({ message: 'Specialization not found' })
+      return res.status(404).json({ error: 'Specialization not found' })
     }
     res.status(200).json({ message: 'Specialization updated successfully', id, name })
   } catch (error) {
@@ -45,9 +45,9 @@ const updateSpecializationById = (req, res) => {
 const deleteSpecializationById = (req, res) => {
   const { id } = req.params
   try {
-    const result = db.prepare(`DELETE FROM specializations WHERE id = ?`).run(id)
+    const result = specializationRepository.deleteSpecialization(id)
     if (result.changes === 0) {
-      return res.status(404).json({ message: 'Specialization not found' })
+      return res.status(404).json({ error: 'Specialization not found' })
     }
     res.status(200).json({ message: 'Specialization deleted successfully' })
   } catch (error) {

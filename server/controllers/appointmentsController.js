@@ -51,7 +51,7 @@ const getAppointmentById = (req, res) => {
   try {
     const appointment = db.prepare(BASE_QUERY + ` WHERE a.id = ?`).get(id)
     if (!appointment) {
-      return res.status(404).json({ message: 'Appointment not found' })
+      return res.status(404).json({ error: 'Appointment not found' })
     }
     const services = db.prepare(`
       SELECT * FROM appointment_services WHERE appointmentId = ?
@@ -280,6 +280,7 @@ const updateAppointment = (req, res) => {
     }, services)
 
     res.status(200).json({
+      message: 'Appointment updated successfully',
       ...req.body,
       id,
       actualRevenue: toTenge(runningTotal),
