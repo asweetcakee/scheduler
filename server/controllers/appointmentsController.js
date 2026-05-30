@@ -1,24 +1,10 @@
-const db = require('../db')
+const appointmentRepository = require('../repositories/appointmentRepository')
 const { toTiyins, toTenge } = require('../utils/currency')
 
-const BASE_QUERY = `
-  SELECT 
-    a.*,
-    c.name AS clientName,
-    c.phone AS clientPhone,
-    s.name  AS staffName
-  FROM appointments a
-  LEFT JOIN clients c ON a.clientId = c.id
-  JOIN staff s ON a.staffId  = s.id
-`
-
 const getAppointmentsWithServices = (appointments) => {
-  if (appointments.length === 0) return []
+  if (appointments.length === 0) return [] 
   const ids = appointments.map(a => a.id)
-  const placeholders = ids.map(() => '?').join(',')
-
-  const services = db.prepare(`SELECT * FROM appointment_services WHERE appointmentId IN (${placeholders})`).all(...ids)
-
+  const services = appointmentRepository.queryServicesByAppointmentIds(ids)
   const servicesByAppointment = {}
   for (const s of services) {
     if(!servicesByAppointment[s.appointmentId]) {
@@ -37,8 +23,8 @@ const getAllAppointments = (req, res) => {
   const { date } = req.query // ?date=2026-05-07
   try {
     const appointments = date
-      ? db.prepare(BASE_QUERY + ` WHERE date(date) = date(?) AND a.status != 'cancelled' ORDER BY startTime ASC`).all(date)
-      : db.prepare(BASE_QUERY).all() // intentional 'cancelled' allowance - unfiltered for admin/reporting use
+      ? appointmentRepository.queryAppointmentsByDate(date)
+      : appointmentRepository.queryAppointments() // intentional 'cancelled' allowance - unfiltered for admin/reporting use
     res.status(200).json(getAppointmentsWithServices(appointments))
   } catch (error) {
     console.error('Error fetching appointments: ', error?.message)
@@ -49,14 +35,12 @@ const getAllAppointments = (req, res) => {
 const getAppointmentById = (req, res) => {
   const { id } = req.params
   try {
-    const appointment = db.prepare(BASE_QUERY + ` WHERE a.id = ?`).get(id)
+    const appointment = appointmentRepository.queryAppointmentById(id)
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' })
     }
-    const services = db.prepare(`
-      SELECT * FROM appointment_services WHERE appointmentId = ?
-    `).all(id)
-    res.status(200).json({ ...appointment, services })
+    const result = getAppointmentsWithServices([appointment])
+    res.status(200).json(result[0])
   } catch (error) {
     console.error('Error fetching appointment: ', error?.message)
     res.status(500).json({ error: 'Failed to fetch appointment' })
@@ -82,58 +66,24 @@ const createAppointment = (req, res) => {
     catalogPrice: toTiyins(s.catalogPrice),
     actualChargedPrice: toTiyins(s.actualChargedPrice)
   }))
-
-  const insertTransaction = db.transaction((appointmentData, servicesData) => {
+  try {
     // Here I'm making sure in the backend that actualRevenue and actualChargedPrice are calculated correctly
     // actualRevenue is sum of actualChargedPrice
     // actualChargedPrice is result of catalogPrice * appliedDiscount
-    const runningTotal = servicesData.reduce((sum, service) => {
+    const runningTotal = services.reduce((sum, service) => {
       const expectedPrice = Math.round(service.catalogPrice * (1 - service.appliedDiscount / 100))
-      if (expectedPrice !== service.actualChargedPrice) {
-        throw new Error('INCORRECT_SERVICE_PRICE')
-      }
-      return sum + expectedPrice
+      if (expectedPrice !== service.actualChargedPrice) throw new Error('INCORRECT_SERVICE_PRICE')
+        return sum + expectedPrice
     }, 0)
-    
-    if (runningTotal !== clientProvidedTotal) {
-      throw new Error('TOTAL_MISMATCH')
-    }
-    
-    const result = db.prepare(
-      `INSERT INTO appointments (clientId, staffId, date, startTime, endTime,
-        actualRevenue, status, isConfirmed, adminNotes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(appointmentData.clientId, appointmentData.staffId, appointmentData.date,
-        appointmentData.startTime, appointmentData.endTime,
-        runningTotal, appointmentData.status,
-        appointmentData.isConfirmed ? 1 : 0, appointmentData.adminNotes)
-    
-    const newAppointmentId = result.lastInsertRowid
 
-    if (servicesData && servicesData.length > 0){
-      const insertServices = db.prepare(
-        `INSERT INTO appointment_services (appointmentId, serviceId, serviceName, catalogDuration, catalogPrice, appliedDiscount, actualChargedPrice)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-      for (const s of servicesData) {
-        insertServices.run(newAppointmentId, s.serviceId, s.serviceName, 
-          s.catalogDuration, s.catalogPrice, s.appliedDiscount, s.actualChargedPrice
-        )
-      }
-    }
+    if (runningTotal !== clientProvidedTotal) throw new Error('TOTAL_MISMATCH')
 
-    return { newAppointmentId, runningTotal }
-  })
-  try {
     // staff exists and is active
-    const staff = db.prepare(`SELECT * FROM staff WHERE id = ? AND isActive = 1`).get(staffId)
+    const staff = appointmentRepository.queryActiveStaffById(staffId)
     if (!staff) return res.status(400).json({ error: 'Staff member not found or inactive' })
 
     // staff has a schedule on this date
-    const schedule = db.prepare(`
-      SELECT * FROM staff_schedules 
-      WHERE staffId = ? AND date = ? AND isCancelled = 0
-    `).get(staffId, date)
+    const schedule = appointmentRepository.queryActiveScheduleByDate(staffId, date)
     if (!schedule) return res.status(400).json({ error: 'Staff member is not scheduled on this date' })
     
     // appointment fits within shift hours
@@ -142,36 +92,38 @@ const createAppointment = (req, res) => {
     }
 
     // no time slot conflicts
-    const conflict = db.prepare(`
-      SELECT id FROM appointments
-      WHERE staffId = ? AND date = ? AND status != 'cancelled'
-        AND startTime < ? AND endTime > ?
-    `).get(staffId, date, endTime, startTime)
+    const conflict = appointmentRepository.queryConflictingAppointment(staffId, date, startTime, endTime)
     if (conflict) return res.status(409).json({ error: 'Time slot conflicts with an existing appointment' })
     
     // services exist and are active
     const serviceIds = services.map(s => s.serviceId)
-    const placeholders = serviceIds.map(() => '?').join(',')
-    const foundServices = db.prepare(`
-      SELECT id FROM services WHERE id IN (${placeholders}) AND isActive = 1
-    `).all(...serviceIds)
+    const foundServices = appointmentRepository.queryActiveServices(serviceIds)
     if (foundServices.length !== serviceIds.length) {
       return res.status(400).json({ error: 'One or more services are invalid or inactive' })
     }
 
-    const { newAppointmentId, runningTotal } = insertTransaction({ 
+    const newAppointmentId = appointmentRepository.insertAppointment({ 
       clientId, staffId, date, startTime, endTime, 
-      clientProvidedTotal, status, isConfirmed, adminNotes 
+      runningTotal, status, isConfirmed, adminNotes
     }, services)
     
-    res.status(201).json({
-      ...req.body,
+    const appointment = {
       id: newAppointmentId,
+      clientId, staffId, date, startTime, endTime,
+      status, isConfirmed, adminNotes,
       actualRevenue: toTenge(runningTotal), // for UX (Float)
       actualRevenueTiyins: runningTotal, // how it was written into DB (Integer)
-      clientId,
       isAnonymous: clientId === null
-    })
+    }
+
+    const [result] = getAppointmentsWithServices([appointment])
+    result.services = result.services.map(s => ({
+      ...s,
+      catalogPrice: toTenge(s.catalogPrice),
+      actualChargedPrice: toTenge(s.actualChargedPrice)
+    }))
+
+    res.status(201).json(result)
   } catch (error) {
     if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
       return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
@@ -192,63 +144,24 @@ const updateAppointment = (req, res) => {
     catalogPrice: toTiyins(s.catalogPrice),
     actualChargedPrice: toTiyins(s.actualChargedPrice)
   }))
-
-  const updateTransaction = db.transaction((appointmentId, appointmentData, servicesData) => {
-    const runningTotal = servicesData.reduce((sum, service) => {
+  try {
+    // Here I'm making sure in the backend that actualRevenue and actualChargedPrice are calculated correctly
+    // actualRevenue is sum of actualChargedPrice
+    // actualChargedPrice is result of catalogPrice * appliedDiscount
+    const runningTotal = services.reduce((sum, service) => {
       const expectedPrice = Math.round(service.catalogPrice * (1 - service.appliedDiscount / 100))
-      if (expectedPrice !== service.actualChargedPrice) {
-        throw new Error('INCORRECT_SERVICE_PRICE')
-      }
-      return sum + expectedPrice
+      if (expectedPrice !== service.actualChargedPrice) throw new Error('INCORRECT_SERVICE_PRICE')
+        return sum + expectedPrice
     }, 0)
 
-    if (runningTotal !== clientProvidedTotal) {
-      throw new Error('TOTAL_MISMATCH')
-    }
+    if (runningTotal !== clientProvidedTotal) throw new Error('TOTAL_MISMATCH')
 
-    const result = db.prepare(`
-      UPDATE appointments 
-      SET clientId = ?, staffId = ?, date = ?, startTime = ?, endTime = ?,
-          actualRevenue = ?, status = ?, isConfirmed = ?, adminNotes = ?
-      WHERE id = ?
-    `).run(
-      appointmentData.clientId, appointmentData.staffId, appointmentData.date,
-      appointmentData.startTime, appointmentData.endTime,
-      runningTotal, appointmentData.status,
-      appointmentData.isConfirmed ? 1 : 0, appointmentData.adminNotes,
-      appointmentId
-    )
-
-    if (result.changes === 0) throw new Error('NOT_FOUND')
-
-    // Same pattern as staff_specializations — wipe and reinsert
-    db.prepare(`DELETE FROM appointment_services WHERE appointmentId = ?`).run(appointmentId)
-
-    if (servicesData.length > 0) {
-      const insertService = db.prepare(`
-        INSERT INTO appointment_services 
-          (appointmentId, serviceId, serviceName, catalogDuration, catalogPrice, appliedDiscount, actualChargedPrice)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `)
-      for (const s of servicesData) {
-        insertService.run(appointmentId, s.serviceId, s.serviceName,
-          s.catalogDuration, s.catalogPrice, s.appliedDiscount, s.actualChargedPrice)
-      }
-    }
-
-    return runningTotal
-  })
-
-  try {
     // staff exists and is active
-    const staff = db.prepare(`SELECT * FROM staff WHERE id = ? AND isActive = 1`).get(staffId)
+    const staff = appointmentRepository.queryActiveStaffById(staffId)
     if (!staff) return res.status(400).json({ error: 'Staff member not found or inactive' })
 
     // staff has a schedule on this date
-    const schedule = db.prepare(`
-      SELECT * FROM staff_schedules 
-      WHERE staffId = ? AND date = ? AND isCancelled = 0
-    `).get(staffId, date)
+    const schedule = appointmentRepository.queryActiveScheduleByDate(staffId, date)
     if (!schedule) return res.status(400).json({ error: 'Staff member is not scheduled on this date' })
     
     // appointment fits within shift hours
@@ -257,37 +170,38 @@ const updateAppointment = (req, res) => {
     }
 
     // no time slot conflicts
-    const conflict = db.prepare(`
-      SELECT id FROM appointments
-      WHERE staffId = ? AND date = ? AND status != 'cancelled'
-        AND startTime < ? AND endTime > ?
-        AND id != ?
-    `).get(staffId, date, endTime, startTime)
+    const conflict = appointmentRepository.queryConflictingAppointment(staffId, date, startTime, endTime, id)
     if (conflict) return res.status(409).json({ error: 'Time slot conflicts with an existing appointment' })
     
     // services exist and are active
     const serviceIds = services.map(s => s.serviceId)
-    const placeholders = serviceIds.map(() => '?').join(',')
-    const foundServices = db.prepare(`
-      SELECT id FROM services WHERE id IN (${placeholders}) AND isActive = 1
-    `).all(...serviceIds)
+    const foundServices = appointmentRepository.queryActiveServices(serviceIds)
     if (foundServices.length !== serviceIds.length) {
       return res.status(400).json({ error: 'One or more services are invalid or inactive' })
     }
 
-    const runningTotal = updateTransaction(id, { 
-      clientId, staffId, date, startTime, endTime, status, isConfirmed, adminNotes 
-    }, services)
-
-    res.status(200).json({
-      message: 'Appointment updated successfully',
-      ...req.body,
+    appointmentRepository.updateAppointment(id, { 
+        clientId, staffId, date, startTime, endTime,
+        runningTotal, status, isConfirmed, adminNotes
+      }, services)
+    
+    const appointment = {
       id,
+      clientId, staffId, date, startTime, endTime,
+      status, isConfirmed, adminNotes,
       actualRevenue: toTenge(runningTotal),
       actualRevenueTiyins: runningTotal,
-      clientId,
       isAnonymous: clientId === null
-    })
+    }
+
+    const [result] = getAppointmentsWithServices([appointment])
+    result.services = result.services.map(s => ({
+      ...s,
+      catalogPrice: toTenge(s.catalogPrice),
+      actualChargedPrice: toTenge(s.actualChargedPrice)
+    }))
+
+    res.status(200).json({ message: 'Appointment updated successfully', ...result })
   } catch (error) {
     if (error.message === 'NOT_FOUND') {
       return res.status(404).json({ error: 'Appointment not found' })
@@ -303,12 +217,8 @@ const updateAppointment = (req, res) => {
 const deleteAppointment = (req, res) => {
   const { id } = req.params
   try {
-    const result = db.prepare(`DELETE FROM appointments WHERE id = ?`).run(id)
-
-    if (result.changes === 0) {
-      return res.status(404).json({ error: 'Appointment not found' })
-    }
-
+    const result = appointmentRepository.deleteAppointment(id)
+    if (result.changes === 0) return res.status(404).json({ error: 'Appointment not found' })
     res.status(200).json({ message: 'Appointment deleted successfully' })
   } catch (error) {
     console.error('Error deleting appointment:', error?.message)

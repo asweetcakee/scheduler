@@ -1,7 +1,9 @@
 const { z } = require('zod/v4')
 const { dateQuery, idParamsSchema, idParam, timeField, isEndAfterStart, nameField, discountPercentField } = require('./shared')
 
-const appointmentDateSchema = dateQuery
+const appointmentDateQuerySchema = z.object({
+  date: dateQuery.optional()
+})
 const appointmentParamsSchema = idParamsSchema
 
 const appointmentBaseSchema = z.object({
@@ -12,7 +14,7 @@ const appointmentBaseSchema = z.object({
   endTime: timeField,
   status: z.enum(['scheduled', 'completed', 'cancelled']).default('scheduled'),
   isConfirmed: z.boolean().default(false),
-  adminNotes: z.string().max(255).optional(),
+  adminNotes: z.string().max(255).nullable().optional(),
   actualRevenue: z.number().min(0),
   services: z.array(z.object({
     serviceId: idParam,
@@ -28,7 +30,7 @@ const createAppointmentSchema = appointmentBaseSchema
 const updateAppointmentSchema = appointmentBaseSchema
 
 module.exports = {
-  appointmentDateSchema,
+  appointmentDateQuerySchema,
   appointmentParamsSchema,
   createAppointmentSchema,
   updateAppointmentSchema
