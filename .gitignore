@@ -31,3 +31,6 @@ dist-ssr
 *.db-wal
 migration.js
 mock_data/
+
+#tests
+coverage/

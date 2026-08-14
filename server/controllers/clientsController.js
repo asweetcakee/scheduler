@@ -15,7 +15,7 @@ const getClientById = (req, res) => {
   try {
     const client = clientRepository.queryClientById(id)
     if (!client) return res.status(404).json({ error: 'Client not found' })
-    const discounts = queryDiscountsByClientId(id)
+    const discounts = clientRepository.queryDiscountsByClientId(id)
     res.status(200).json({ ...client, discounts })
   } catch (error) {
     console.error('Error fetching client: ', error?.message)

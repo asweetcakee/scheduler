@@ -1,6 +1,9 @@
 const express = require('express')
 const app = express()
 
+const swaggerUi = require('swagger-ui-express')
+const swaggerFile = require('./swagger-output.json')
+
 const middleware = require('./utils/middleware')
 
 const servicesRouter = require('./routes/services')
@@ -11,6 +14,7 @@ const staffRouter = require('./routes/staff')
 const appointmentsRouter = require('./routes/appointments')
 
 app.use(express.json())
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 app.use(middleware.httpLogger)
 
 app.use('/api/services', servicesRouter)

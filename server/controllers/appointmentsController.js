@@ -19,7 +19,7 @@ const getAppointmentsWithServices = (appointments) => {
   }))
 }
 
-const getAllAppointments = (req, res) => {
+const getAllAppointments = (req, res, next) => {
   const { date } = req.query // ?date=2026-05-07
   try {
     const appointments = date
@@ -27,12 +27,11 @@ const getAllAppointments = (req, res) => {
       : appointmentRepository.queryAppointments() // intentional 'cancelled' allowance - unfiltered for admin/reporting use
     res.status(200).json(getAppointmentsWithServices(appointments))
   } catch (error) {
-    console.error('Error fetching appointments: ', error?.message)
-    res.status(500).json({ error: 'Failed to fetch appointments' })
+    next(error)
   }
 }
 
-const getAppointmentById = (req, res) => {
+const getAppointmentById = (req, res, next) => {
   const { id } = req.params
   try {
     const appointment = appointmentRepository.queryAppointmentById(id)
@@ -42,8 +41,7 @@ const getAppointmentById = (req, res) => {
     const result = getAppointmentsWithServices([appointment])
     res.status(200).json(result[0])
   } catch (error) {
-    console.error('Error fetching appointment: ', error?.message)
-    res.status(500).json({ error: 'Failed to fetch appointment' })
+    next(error)
   }
 }
 
@@ -55,7 +53,7 @@ const getAppointmentById = (req, res) => {
 // If either check fails, the whole transaction is aborted
 // On success, runningTotal (backend-computed) is written to DB as actualRevenue
 // Response returns tenge floats for UX, tiyins for any frontend that needs the raw integer
-const createAppointment = (req, res) => {
+const createAppointment = (req, res, next) => {
   const clientId = req.body.clientId ?? null
   const { staffId, date, startTime, endTime, status, isConfirmed, adminNotes } = req.body
   const clientProvidedTotal = toTiyins(req.body.actualRevenue)
@@ -125,15 +123,11 @@ const createAppointment = (req, res) => {
 
     res.status(201).json(result)
   } catch (error) {
-    if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
-      return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
-    }
-    console.error('Error creating an appointment: ', error?.message)
-    res.status(500).json({ error: 'Failed to create an appointment' })
+    next(error)
   }
 }
 
-const updateAppointment = (req, res) => {
+const updateAppointment = (req, res, next) => {
   const { id } = req.params
   const clientId = req.body.clientId ?? null
   const { staffId, date, startTime, endTime, status, isConfirmed, adminNotes } = req.body
@@ -203,26 +197,18 @@ const updateAppointment = (req, res) => {
 
     res.status(200).json({ message: 'Appointment updated successfully', ...result })
   } catch (error) {
-    if (error.message === 'NOT_FOUND') {
-      return res.status(404).json({ error: 'Appointment not found' })
-    }
-    if (error.message === 'TOTAL_MISMATCH' || error.message === 'INCORRECT_SERVICE_PRICE') {
-      return res.status(400).json({ error: 'The calculation on frontend doesn\'t match calculation on backend' })
-    }
-    console.error('Error updating appointment:', error?.message)
-    res.status(500).json({ error: 'Failed to update appointment' })
+    next(error)
   }
 }
 
-const deleteAppointment = (req, res) => {
+const deleteAppointment = (req, res, next) => {
   const { id } = req.params
   try {
     const result = appointmentRepository.deleteAppointment(id)
     if (result.changes === 0) return res.status(404).json({ error: 'Appointment not found' })
     res.status(200).json({ message: 'Appointment deleted successfully' })
   } catch (error) {
-    console.error('Error deleting appointment:', error?.message)
-    res.status(500).json({ error: 'Failed to delete appointment' })
+    next(error)
   }
 }
 module.exports = {
