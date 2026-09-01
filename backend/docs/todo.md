@@ -55,3 +55,15 @@ Current decision: email format validation remains at the application layer. The 
 Why: email syntax is application-level input validation and complex SQL CHECK logic would duplicate validation rules without adding meaningful value to the current v0.1 database design
 When: revisit only if a concrete requirement appears for database-level enforcement across non-application data sources
 
+###7. Environment variables runtime validation
+Q: How should environment variables be validated and typed across the project?
+- Status: Deferred
+
+Current options:
+- Manual parsing with default fallback values (current approach)
+- Strict runtime validation via Zod schema
+- dotenv-safe / envalid integration
+
+Current decision: keep simple fallback parsing in env.ts for foundation setup, avoiding process.env.X! non-null assertions.
+Why: Why: early v0.1 foundation stage should avoid adding strict runtime schemas until the core application structure and deployment requirements are fully stabilized.
+When: during application bootstrap setup prior to introducing external integrations or production deployments.
