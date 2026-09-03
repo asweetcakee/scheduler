@@ -1,6 +1,8 @@
 import express from 'express'
 import cors from 'cors'
+import swaggerUi from 'swagger-ui-express'
 
+import { openApiDocument } from './config/openapi.js'
 import { httpLogger } from './middlewares/logger.js'
 import healthRouter from './routes/health.js'
 import pingRouter from './routes/ping.js'
@@ -13,6 +15,7 @@ app.use(express.json())
 app.use(cors())
 app.use(httpLogger)
 
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument))
 app.use('/api', pingRouter)
 app.use('/api', healthRouter)
 

@@ -1,0 +1,90 @@
+openapi: 3.1.0
+
+info:
+  title: Scheduler API
+  version: 0.1.0
+  description: Appointment management system for a beauty salon
+
+servers:
+  - url: /api
+    description: Primary API base path
+
+tags:
+  - name: System
+    description: Server health and status endpoints
+
+paths:
+  /ping:
+    get:
+      tags: 
+        - System
+      summary: Checks server availability
+      responses: 
+        '200':
+          description: Server is online and responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags: 
+        - System
+      summary: Checks server and db availability
+      responses:
+        '200':
+          description: Server and db are online and responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+components:
+  schemas:
+    PingResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          examples: 
+            - pong
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - database
+      properties:
+        status:
+          type: string
+          examples: 
+            - ok
+        database:
+          type: string
+          examples: 
+            - ok
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          examples:
+            - Internal server error
