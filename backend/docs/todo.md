@@ -41,11 +41,13 @@ When: revisit during Appointment service implementation if a stronger database-l
 
 ### 5. Phone normalization
 Q: What canonical phone format should be stored in the database and where should normalization occur?
-- Status: Deferred
+<div style="background-color: rgba(46, 160, 67, 0.15); border-left: 5px solid #2ea043; padding: 12px; border-radius: 6px; margin: 16px 0;">
+- Status: SOLVED
 
 Current decision: the database stores phone numbers in canonical digits-only form. Frontend may format the value for display, but backend is responsible for normalization and validation before persistence. Zod validates the normalized API input shape
 Why: the database should not depend on frontend formatting, and the same normalization rule must work for every API client
 When: define the exact normalization rules before implementing the Client API
+</div>
 
 ### 6. Email validation
 Q: Should email format be enforced by PostgreSQL or only by application-level validation?
@@ -131,3 +133,16 @@ Q: How should the project track which SQL migrations have already been applied?
 Current decision: SQL migrations are currently applied manually
 Why: the project is still at the database foundation stage and manual migrations are intentionally used as a learning exercise
 When: when the number of migrations makes manual tracking error-prone or automated deployment becomes necessary
+
+### 16. Client phone digits constraint
+Q: Should the database enforce exact 10 digits via a CHECK constraint on `Client.phone`?
+- Status: Deferred
+
+Current options:
+- Application-level enforcement via Zod schema (digits-only, exactly 10 digits)
+- Database-level constraint using `CHECK (phone ~ '^[0-9]{10}$')`
+- Combined application-level and database-level enforcement
+
+Current decision: store as VARCHAR(15) with UNIQUE constraint, deferring database-level format enforcement (CHECK) to avoid creating an extra migration before Client API is written. Application layer (Zod) handles digits-only 10-digit validation for now
+Why: the schema works for current foundation needs without immediate migration overhead. We should avoid confusing minor schema improvements with an urgent reason to alter migrations before actual usage in the API layer
+When: evaluate before final stabilization of the Client vertical slice or during initial Client API implementation
