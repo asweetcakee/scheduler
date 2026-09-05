@@ -171,7 +171,7 @@ paths:
       tags:
       - Clients
       summary: Finds client
-      description: description: Returns a client based on its ID
+      description: Returns a client based on its ID
       operationId: getClientById
       security:
         - BearerAuth: []
