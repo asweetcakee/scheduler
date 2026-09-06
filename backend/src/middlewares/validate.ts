@@ -7,21 +7,35 @@ type ValidationSchema = {
     params?: ZodType
 }
 
+declare global {
+    namespace Express {
+        interface Request {
+            validated?: {
+                body?: unknown,
+                query?: unknown,
+                params?: unknown
+            }
+        }
+    }
+}
+
 export const validate = (
     schemas: ValidationSchema
 ): RequestHandler => {
     return (req, res, next) => {
         try {
+            req.validated = {}
+
             if (schemas.body) {
-                req.body = schemas.body.parse(req.body)
+                req.validated.body = schemas.body.parse(req.body)
             }
 
             if (schemas.query) {
-                schemas.query.parse(req.query)
+                req.validated.query = schemas.query.parse(req.query)
             }
 
             if (schemas.params) {
-                schemas.params.parse(req.params)
+                req.validated.params = schemas.params.parse(req.params)
             }
 
             next()

@@ -1,10 +1,10 @@
 import { z } from 'zod/v4'
 
 const idParam = z
-    .string()
-    .regex(/^\d+$/, {
-        error: 'ID must be a positive integer'
-    })
+    .coerce
+    .number()
+    .int()
+    .positive({ error: 'ID must be a positive integer' })
 
 const nameField = z.string()
     .trim()
