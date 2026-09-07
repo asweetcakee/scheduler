@@ -47,3 +47,26 @@ export const findById = async (id: number): Promise<ClientRow | null> => {
 
     return result.rows[0] ?? null
 }
+
+export const findByPhone = async (phone: string): Promise<ClientRow | null> => {
+    const result = await pool.query<ClientRow>(
+        `
+        SELECT id, name, phone, note
+        FROM clients
+        WHERE phone = $1
+        `, [phone]
+    )
+
+    return result.rows[0] ?? null
+}
+
+export const findClients = async (): Promise<ClientRow[]> => {
+    const result = await pool.query<ClientRow>(
+        `
+        SELECT id, name, phone, note
+        FROM clients
+        `
+    )
+
+    return result.rows
+}

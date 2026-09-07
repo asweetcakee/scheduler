@@ -33,7 +33,7 @@ export const clientParamsSchema = z.strictObject({
 })
 
 export const clientPhoneQuerySchema = z.strictObject({
-    phone: phoneField
+    phone: phoneField.optional()
 })
 
 export const updateClientSchema = z.strictObject({

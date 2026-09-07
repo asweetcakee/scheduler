@@ -11,3 +11,11 @@ export const createClient = async (
 export const findClientById = async (id: number) => {
     return clientRepository.findById(id)
 }
+
+export const findClientByPhone = async (phone: string) => {
+    return clientRepository.findByPhone(phone)
+}
+
+export const findAllClients = async () => {
+    return clientRepository.findClients()
+}
