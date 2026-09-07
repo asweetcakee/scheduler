@@ -1,10 +1,39 @@
 import { pool } from '../../db/pool.js'
+import { ConflictError } from '../../errors/ConflictError.js'
+import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
 
 type ClientRow = {
     id: number,
     name: string,
     phone: string,
     note: string | null
+}
+
+export const create = async (
+    name: string,
+    phone: string,
+    note: string | null
+): Promise<ClientRow> => {
+    try {
+        const result = await pool.query<ClientRow>(
+            `
+            INSERT INTO clients (name, phone, note)
+            VALUES ($1, $2, $3)
+            RETURNING id, name, phone, note
+            `, [name, phone, note]
+        )
+
+        const row = result.rows[0]
+        if (!row) {
+            throw new Error ('Insert did not return a row')
+        }
+        return row
+    } catch (error) {
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Client with this phone already exists')
+        }
+        throw error
+    }
 }
 
 export const findById = async (id: number): Promise<ClientRow | null> => {
@@ -16,11 +45,5 @@ export const findById = async (id: number): Promise<ClientRow | null> => {
         `, [id]
     )
 
-    const row = result.rows[0]
-    if (!row) return null
-    
-    return {
-        ...row,
-        id: Number(row.id)
-    }
+    return result.rows[0] ?? null
 }

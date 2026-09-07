@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod/v4'
+import { ConflictError } from '../errors/ConflictError.js'
 
 export const errorHandler = (
     error: unknown,
@@ -13,6 +14,13 @@ export const errorHandler = (
         res.status(400).json({
             error: 'Invalid request',
             details: error.issues
+        })
+        return
+    }
+
+    if (error instanceof ConflictError) {
+        res.status(409).json({
+            error: error.message
         })
         return
     }

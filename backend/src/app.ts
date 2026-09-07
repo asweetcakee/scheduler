@@ -6,6 +6,7 @@ import { openApiDocument } from './config/openapi.js'
 import { httpLogger } from './middlewares/logger.js'
 import healthRouter from './routes/health.js'
 import pingRouter from './routes/ping.js'
+import clientRouter from './routes/clients.js'
 import { notFound } from './middlewares/notFound.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 
@@ -18,6 +19,7 @@ app.use(httpLogger)
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openApiDocument))
 app.use('/api', pingRouter)
 app.use('/api', healthRouter)
+app.use('/api/clients', clientRouter)
 
 app.use(notFound)
 app.use(errorHandler)

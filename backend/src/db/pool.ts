@@ -1,5 +1,7 @@
-import { Pool } from 'pg'
+import { Pool, types } from 'pg'
 import { env } from '../config/env.js'
+
+types.setTypeParser(20, (val) => Number(val)) // converts BIGINT into Number
 
 export const pool = new Pool({
     host: env.DB_HOST,
