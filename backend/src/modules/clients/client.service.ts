@@ -24,3 +24,7 @@ export const findAllClients = async () => {
 export const updateClient = async ( id: number, data: UpdateClientInput) => {
     return clientRepository.update(id, data)
 }
+
+export const removeClient = async ( id: number ) => {
+    return clientRepository.remove(id)
+}

@@ -102,3 +102,23 @@ export const updateClient = async(
         next(error)
     }
 }
+
+export const removeClient = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const { id } = req.validated?.params as ClientParams
+        const result = await clientService.removeClient(id)
+        if (!result) {
+            res.status(404).json({
+                error: 'Client not found'
+            })
+            return
+        }
+        res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
+}

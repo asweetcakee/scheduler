@@ -9,5 +9,6 @@ router.get('/', validate({ query: clientPhoneQuerySchema }), clientController.ge
 router.get('/:id', validate({ params: clientParamsSchema }), clientController.getClientById)
 router.post('/', validate({ body: createClientSchema }), clientController.createClient)
 router.patch('/:id', validate({ params: clientParamsSchema, body: updateClientSchema }), clientController.updateClient)
+router.delete('/:id', validate({ params: clientParamsSchema }), clientController.removeClient)
 
 export default router
