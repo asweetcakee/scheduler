@@ -120,7 +120,11 @@ paths:
       tags:
         - Clients
       summary: List or find clients
-      description: Returns a list of clients. Supply an optional phone query parameter to filter by a specific phone number
+      description: > 
+        Returns a list of clients.
+        Without the phone query parameter, returns all clients.
+        When phone is provided, returns clients matching the exact phone number.
+        If no client matches the phone number, returns an empty array.
       operationId: getClients
       security:
         - BearerAuth: []
@@ -140,6 +144,30 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ClientResponse'
+              examples:
+                allClients:
+                  summary: All clients
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      note: "Постоянный клиент"
+                    - id: 2
+                      name: "Марина"
+                      phone: "7019876543"
+                      note: null
+
+                phoneMatch:
+                  summary: Client found by phone
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      note: "Постоянный клиент"
+
+                phoneNotFound:
+                  summary: No client matches the phone
+                  value: []
         '400':
           description: Bad Request - Validation error
           content:

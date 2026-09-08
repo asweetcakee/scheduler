@@ -58,18 +58,14 @@ export const getClients = async (
 ): Promise<void> => {
     try {
         if (!req.validated?.query) {
-            res.status(500).json({ error: 'Missing validated query HELP' })
+            res.status(500).json({ error: 'Missing validated query' })
             return
         }
 
         const { phone } = req.validated.query as ClientQuery
         if (phone) {
             const client = await clientService.findClientByPhone(phone)
-            if (!client) {
-                res.status(404).json({ error: 'Client not found' })
-                return
-            }
-            res.status(200).json(client)
+            res.status(200).json(client ? [client] : [])
             return
         }
 
