@@ -1,6 +1,7 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
+import type { UpdateClientInput } from '../../schemas/clientSchema.js'
 
 type ClientRow = {
     id: number,
@@ -69,4 +70,48 @@ export const findClients = async (): Promise<ClientRow[]> => {
     )
 
     return result.rows
+}
+
+export const update = async (
+    id: number,
+    data: UpdateClientInput
+): Promise<ClientRow | null> => {
+    try {
+        const fields: string[] = []
+        const values: unknown[] = []
+
+        if (data.name !== undefined) {
+            fields.push(`name = $${fields.length + 1}`)
+            values.push(data.name)
+        }
+
+        if (data.phone !== undefined) {
+            fields.push(`phone = $${fields.length + 1}`)
+            values.push(data.phone)
+        }
+
+        if (data.note !== undefined) {
+            fields.push(`note = $${fields.length + 1}`)
+            values.push(data.note)
+        }
+
+        values.push(id)
+
+        const idPlaceholder = values.length
+        const result = await pool.query<ClientRow>(
+            `
+            UPDATE clients
+            SET ${fields.join(', ')}
+            WHERE id = $${idPlaceholder}
+            RETURNING id, name, phone, note
+            `, values
+        )
+
+        return result.rows[0] ?? null
+    } catch (error) {
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Client with this phone already exists')
+        }
+        throw error
+    }
 }

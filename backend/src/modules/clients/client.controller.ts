@@ -1,11 +1,12 @@
 import * as clientService from './client.service.js'
 import type { Request, Response, NextFunction } from 'express'
-import { clientParamsSchema, clientPhoneQuerySchema, createClientSchema } from '../../schemas/clientSchema.js'
+import { clientParamsSchema, clientPhoneQuerySchema, createClientSchema, updateClientSchema } from '../../schemas/clientSchema.js'
 import type { z } from 'zod/v4'
 
 type ClientParams = z.infer<typeof clientParamsSchema> // guarantees 'id' is type of 'number'
 type CreateClientBody = z.infer<typeof createClientSchema>
 type ClientQuery = z.infer<typeof clientPhoneQuerySchema>
+type UpdateClientBody = z.infer<typeof updateClientSchema>
 
 export const createClient = async (
     req: Request,
@@ -71,6 +72,32 @@ export const getClients = async (
 
         const clients = await clientService.findAllClients()
         res.status(200).json(clients)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const updateClient = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params || !req.validated?.body) {
+            res.status(500).json({ error: 'Missing validated body' })
+            return
+        }
+
+        const { id } = req.validated.params as ClientParams
+        const data = req.validated.body as UpdateClientBody
+        const client = await clientService.updateClient(id, data)
+        if (!client) {
+            res.status(404).json({
+                error: 'Client not found'
+            })
+            return
+        }
+        res.status(200).json(client)
     } catch (error) {
         next(error)
     }

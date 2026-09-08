@@ -46,3 +46,5 @@ export const updateClientSchema = z.strictObject({
         error: 'At least one field must be provided'
     }
 )
+
+export type UpdateClientInput = z.infer<typeof updateClientSchema>
