@@ -1,20 +1,20 @@
-import { useClients } from './hooks/clients'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { AdminLayout } from './layout/AdminLayout'
+import { ClientPage } from './pages/ClientsPage'
 
-const App = () => {
-  const { data: clients, isLoading, error } = useClients()
-  
-  if (isLoading) return <p>Loading clients...</p>
-  if (error) return <p>Error: {error.message}</p>
-  
-  return (
-    <ul>
-      {
-        clients?.map((client) => (
-          <li key={client.id}>{client.name}</li>
-        ))
-      }
-    </ul>
-  )
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <AdminLayout />,
+    children: [
+      { index: true, element: <Navigate to='/clients' replace /> },
+      { path: 'clients', element: <ClientPage /> }
+    ]
+  }
+])
+
+const App = () => { 
+  return <RouterProvider router={router} />
 }
 
 export default App
