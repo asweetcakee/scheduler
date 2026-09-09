@@ -16,3 +16,5 @@ export type UpdateClientInput = {
     phone?: string,
     note?: string | null
 }
+
+export type ModalState = 'create' | Client | null
