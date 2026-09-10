@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useClients } from '../hooks/clients'
+import { useClients, useRemoveClient } from '../hooks/clients'
 import type { Client, ModalState } from '../types/client'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
 
 export const ClientPage = () => {
     const { data: clients, isLoading, error } = useClients()
     const [modalState, setModalState] = useState<ModalState>(null)
+    const deleteMutation = useRemoveClient()
     
     if (isLoading) return <p>Loading clients...</p>
     if (error) return <p>Error: {error.message}</p>
@@ -22,8 +23,11 @@ export const ClientPage = () => {
         setModalState(null)
     }
 
-    const handleDelete = (id: number) => {
-        console.log('Delete id: ', id)
+    const handleDelete = (client: Client) => {
+        const isConfirmed: boolean = window.confirm(`Вы действительно хотите удалить ${client.name}`)
+        if (isConfirmed) {
+            deleteMutation.mutate(client.id)
+        }
     }
 
     return (
@@ -51,7 +55,7 @@ export const ClientPage = () => {
                                 <td>{client.note}</td>
                                 <td>
                                     <button onClick={() => handleEdit(client)}>Edit</button>
-                                    <button onClick={() => handleDelete(client.id)}>Delete</button>
+                                    <button onClick={() => handleDelete(client)}>Delete</button>
                                 </td>
                             </tr>
                         ))
