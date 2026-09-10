@@ -1,0 +1,506 @@
+openapi: 3.1.0
+
+info:
+  title: Scheduler API
+  version: 0.1.0
+  description: Appointment management system for a beauty salon
+
+servers:
+  - url: /api
+    description: Primary API base path
+
+tags:
+  - name: System
+    description: Server health and status endpoints
+  - name: Clients
+    description: Clients CRUD endpoints
+
+paths:
+  /ping:
+    get:
+      tags: 
+        - System
+      summary: Checks server availability
+      responses: 
+        '200':
+          description: Server is online and responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PingResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      tags: 
+        - System
+      summary: Checks server and db availability
+      responses:
+        '200':
+          description: Server and db are online and responding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /clients:
+    post:
+      tags:
+        - Clients
+      summary: Creates a new client
+      operationId: createClient
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: 
+              $ref: '#/components/schemas/CreateClientRequest'
+      responses:
+        '201': 
+          description: Created - Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+        '401': 
+          description: Unauthorized - Authentication token missing or invalid/expired
+        '403':
+          description: Forbidden - Insufficient permissions
+        '409':
+          description: Conflict - Duplicate resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Phone exists
+                  value:
+                    error: "Client with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    get:
+      tags:
+        - Clients
+      summary: List or find clients
+      description: > 
+        Returns a list of clients.
+        Without the phone query parameter, returns all clients.
+        When phone is provided, returns clients matching the exact phone number.
+        If no client matches the phone number, returns an empty array.
+      operationId: getClients
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: query
+          required: false
+          description: Optional 10-digit phone number without country code (+7). Triggers 400 if the format is invalid
+          schema:
+            $ref: '#/components/schemas/PhoneFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClientResponse'
+              examples:
+                allClients:
+                  summary: All clients
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      note: "Постоянный клиент"
+                    - id: 2
+                      name: "Марина"
+                      phone: "7019876543"
+                      note: null
+
+                phoneMatch:
+                  summary: Client found by phone
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      note: "Постоянный клиент"
+
+                phoneNotFound:
+                  summary: No client matches the phone
+                  value: []
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+  /clients/{id}:
+    get:
+      tags:
+      - Clients
+      summary: Finds client
+      description: Returns a client based on its ID
+      operationId: getClientById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the client
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'                  
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Client ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples: 
+                notFound:
+                  summary: Client not Found
+                  value:
+                    error: "Client not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    patch:
+      tags:
+      - Clients
+      summary: Updates client
+      description: Updates at least one field of a client
+      operationId: updateClientById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the client
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody: 
+        required: true
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/UpdateClientRequest'
+      responses:
+        '200':
+          description: OK - Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClientResponse'
+        '400':
+          description: Bad Request - Invalid payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+                emptyBody:
+                  summary: Empty update request
+                  value:
+                    error: "At least one field must be provided to perform an update"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Client not found
+                  value:
+                    error: "Client not found"
+        '409':
+          description: Conflict - Phone number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Duplicate phone
+                  value:
+                    error: "Client with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    delete:
+      tags:
+        - Clients
+      summary: Deletes Client
+      description: Deletes client by ID
+      operationId: deleteClientById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the client
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Client deleted successfully
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Client ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Client not found
+                  value:
+                    error: "Client not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
+components:
+  securitySchemes:
+      BearerAuth: 
+        type: http
+        scheme: bearer
+  schemas:
+    PingResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          examples: 
+            - pong
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - database
+      properties:
+        status:
+          type: string
+          examples: 
+            - ok
+        database:
+          type: string
+          examples: 
+            - ok
+
+    CreateClientRequest:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        note:
+          $ref: '#/components/schemas/NoteFormat'
+
+    IdFormat:
+      type: integer
+      format: int64
+      description: Unique identifier for the client
+      examples:
+        - 987
+
+    PhoneFormat:
+      type: string
+      pattern: '^[0-9]{10}$'
+      description: Canonical 10-digit Kazakhstan number
+      examples:
+        - "7071234567"
+
+    NameFormat:
+      type: string
+      minLength: 1
+      pattern: '^\s*\S.*$'
+      description: Client's name. Cannot be empty or blank
+      examples:
+        - "Алия"
+
+    NoteFormat:
+      type: [string, "null"]
+      description: Internal notes. May be passed as null for an empty note
+      examples: 
+        - null
+        - "Has an allergy to a product"
+
+    ClientResponse:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name: 
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        note:
+          $ref: '#/components/schemas/NoteFormat'
+    
+    UpdateClientRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        note:
+          $ref: '#/components/schemas/NoteFormat'
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Human-readable error message explaining why the request failed
+          examples:
+            - "Invalid request parameters"

@@ -11,8 +11,6 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
-.env.*.local
 
 # Editor directories and files
 .vscode/*
@@ -25,12 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 
-# SQLite DB
-*.db
-*.db-shm
-*.db-wal
-migration.js
-mock_data/
-
-#tests
-coverage/
+.env
