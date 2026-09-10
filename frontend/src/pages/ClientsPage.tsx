@@ -60,7 +60,8 @@ export const ClientPage = () => {
             </table>
             
             {modalState !== null && (
-                <ClientFormModal 
+                <ClientFormModal
+                    key={modalState === 'create' ? 'create' : modalState.id} 
                     client = { modalState === 'create' ? null : modalState }
                     onClose = {handleClose}
                 />
