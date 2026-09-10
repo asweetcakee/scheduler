@@ -4,6 +4,7 @@ import { clientSchema, type ClientForm } from '../../schemas/clientSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateClient, useUpdateClient } from '../../hooks/clients'
 import { formatPhoneDisplay } from './phone'
+import { Modal } from '../shared/Modal'
 
 export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {   
     const isEditing = client !== null
@@ -34,7 +35,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
     }
 
     return(
-        <div className='flex items-center justify-center w-[300px] h-[600px] bg-[#E2E2E2]'>
+        <Modal onClose={onClose}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-2'>
                 <label htmlFor='name'>Имя:</label>
                 <input
@@ -86,6 +87,6 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     {isEditing ? 'Обновить' : 'Добавить'}
                 </button>
             </form>
-        </div>
+        </Modal>
     )
 }
