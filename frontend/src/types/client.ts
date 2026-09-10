@@ -17,4 +17,9 @@ export type UpdateClientInput = {
     note?: string | null
 }
 
+export type ClientFormModalProps = {
+    client: Client | null,
+    onClose: () => void
+}
+
 export type ModalState = 'create' | Client | null

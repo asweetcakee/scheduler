@@ -1,23 +1,9 @@
 import { Controller, useForm } from 'react-hook-form'
-import type { Client } from '../../types/client'
+import type { ClientFormModalProps } from '../../types/client'
 import { clientSchema, type ClientForm } from '../../schemas/clientSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateClient, useUpdateClient } from '../../hooks/clients'
-
-type ClientFormModalProps = {
-    client: Client | null,
-    onClose: () => void
-}
-
-const formatPhoneDisplay = (digits: string) => {
-    let result = ''
-    if (digits.length > 0) result += ` (${ digits.slice(0, 3) }`
-    if (digits.length >= 3) result += ')'
-    if (digits.length > 3) result += ` ${digits.slice(3, 6)}`
-    if (digits.length > 6) result += `-${digits.slice(6, 8)}`
-    if (digits.length > 8) result += `-${digits.slice(8, 10)}`
-    return result
-}
+import { formatPhoneDisplay } from './phone'
 
 export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {   
     const isEditing = client !== null
@@ -60,6 +46,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                 {errors.name && (
                     <span className='text-red-500 text-sm'>{errors.name.message}</span>
                 )}
+
                 <label htmlFor='phone'>Номер телефона:</label>
                 <Controller
                     name='phone'
@@ -83,6 +70,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                 {errors.phone && (
                     <span className='text-red-500 text-sm'>{errors.phone.message}</span>
                 )}
+
                 <label htmlFor='note'>Заметка:</label>
                 <input 
                     {...register('note')}
@@ -93,6 +81,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                 {errors.note && (
                     <span className='text-red-500 text-sm'>{errors.note.message}</span>
                 )}
+                
                 <button type='submit' className='bg-blue-600 text-white rounded px-3 py-2'>
                     {isEditing ? 'Обновить' : 'Добавить'}
                 </button>
