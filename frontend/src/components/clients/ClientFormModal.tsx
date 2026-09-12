@@ -14,6 +14,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
     const {
         control,
         register,
+        watch,
         handleSubmit,
         formState: { errors }
     } = useForm<ClientForm>({
@@ -33,6 +34,8 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
         }
         createMutation.mutate(data, { onSuccess: onClose })
     }
+
+    const noteValue = watch('note') ?? ''
 
     return(
         <Modal onClose={onClose}>
@@ -77,7 +80,13 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     <span className='text-danger text-sm'>{errors.phone.message}</span>
                 )}
 
-                <label htmlFor='note'>Заметка:</label>
+                <div className='flex justify-between items-center'>
+                    <label htmlFor='note'>Заметка:</label>
+                    <span className={`text-xs ${noteValue.length > 1800 ? 'text-danger' : 'text-text-muted'}`}>
+                        {noteValue.length}/2000
+                    </span>
+                </div>
+                
                 <textarea 
                     {...register('note')}
                     placeholder='Постоянный клиент'
