@@ -42,10 +42,10 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     {...register('name')}
                     type='text' 
                     placeholder='Имя'
-                    className='border border-slate-300 rounded px-3 py-2'
+                    className='border border-primary focus:border-accent-purple outline-none rounded px-3 py-2'
                 />
                 {errors.name && (
-                    <span className='text-red-500 text-sm'>{errors.name.message}</span>
+                    <span className='text-danger text-sm'>{errors.name.message}</span>
                 )}
 
                 <label htmlFor='phone'>Номер телефона:</label>
@@ -53,14 +53,19 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     name='phone'
                     control={control}
                     render={({ field }) => (
-                        <div className='flex items-center border border-slate-300 rounded px-3 py-2'>
-                            <span className='text-slate-500 mr-1'>+7</span>
+                        <div className='flex items-center border border-primary focus-within:border-accent-purple rounded px-3 py-2'>
+                            <span className='text-text-secondary mr-1'>+7</span>
                             <input
                                 type='tel'
                                 value={formatPhoneDisplay(field.value ?? '')}
                                 onChange={(e) => {
-                                    const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-                                    field.onChange(digits)
+                                    const raw = e.target.value
+                                    const newDigits =  raw.replace(/\D/g, '').slice(0, 10)
+                                    const oldDigits = field.value ?? ''
+                                    const isMaskCharDeleted = 
+                                        newDigits.length === oldDigits.length
+                                        && raw.length < formatPhoneDisplay(oldDigits).length
+                                    field.onChange(isMaskCharDeleted ? newDigits.slice(0, -1) : newDigits)
                                 }}
                                 placeholder='(707) 123-45-67'
                                 className='outline-none flex-1'
@@ -69,21 +74,22 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     )}
                 />
                 {errors.phone && (
-                    <span className='text-red-500 text-sm'>{errors.phone.message}</span>
+                    <span className='text-danger text-sm'>{errors.phone.message}</span>
                 )}
 
                 <label htmlFor='note'>Заметка:</label>
-                <input 
+                <textarea 
                     {...register('note')}
-                    type='text' 
                     placeholder='Постоянный клиент'
-                    className='border border-slate-300 rounded px-3 py-2'
+                    rows={4}
+                    maxLength={2000}
+                    className='border border-primary focus:border-accent-purple outline-none rounded px-3 py-2 resize-y min-h-[80px] max-h-[300px]'
                 />
                 {errors.note && (
-                    <span className='text-red-500 text-sm'>{errors.note.message}</span>
+                    <span className='text-danger text-sm'>{errors.note.message}</span>
                 )}
                 
-                <button type='submit' className='bg-blue-600 text-white rounded px-3 py-2'>
+                <button type='submit' className='bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium px-4 py-2 rounded-lg transition-colors'>
                     {isEditing ? 'Обновить' : 'Добавить'}
                 </button>
             </form>
