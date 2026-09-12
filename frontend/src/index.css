@@ -40,6 +40,7 @@
 
     /* Text */
     --color-text: #1F1F1F;
+    --color-text-alt: #FFFFFF;
     --color-text-data: #000000;
     --color-text-secondary: #595C5F;
     --color-text-muted: #8A99AD;
