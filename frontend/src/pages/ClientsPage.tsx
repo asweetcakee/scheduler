@@ -8,7 +8,9 @@ export const ClientPage = () => {
     const { data: clients, isLoading, error } = useClients()
     const [modalState, setModalState] = useState<ModalState>(null)
     const [phoneSearch, setPhoneSearch] = useState<string>('')
+    const [isFocused, setIsFocused] = useState<boolean>(false)
     const deleteMutation = useRemoveClient()
+    const showPrefix = isFocused || (phoneSearch ?? '').length > 0
 
     const filteredClients = useMemo(() => {
         if (!clients) return []
@@ -42,15 +44,24 @@ export const ClientPage = () => {
         <div className='flex flex-col'>
             <div className='flex justify-start items-center mx-6 mt-6 gap-2'>
                 <div className='flex items-center border border-transparent focus-within:border-accent-purple rounded-lg px-3 py-2 bg-surface max-w-xs group'>
-                    <span className='text-primary font-medium select-none mr-1.5'>+7</span>
+                    {showPrefix && (
+                        <span className='text-primary font-medium select-none mr-1.5'>+7</span>
+                    )}
                     <input 
                         type='tel'
-                        placeholder='707 123 4567'
+                        placeholder='Поиск по номеру...'
                         className='w-full p-0 outline-none text-primary placeholder-text-muted'
                         value={formatPhoneDisplay(phoneSearch ?? '')}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
                         onChange={(e) => {
-                            const digits = e.target.value.replace(/\D/g, '').slice(0, 10)
-                            setPhoneSearch(digits)
+                            const raw = e.target.value
+                            const newDigits = raw.replace(/\D/g, '').slice(0, 10)
+                            const oldDigits = phoneSearch ?? ''
+                            const isMaskCharDeleted = 
+                                newDigits.length === oldDigits.length 
+                                && raw.length < formatPhoneDisplay(oldDigits).length
+                            setPhoneSearch(isMaskCharDeleted ? newDigits.slice(0, -1) : newDigits)
                         }}
                     />
                 </div>
