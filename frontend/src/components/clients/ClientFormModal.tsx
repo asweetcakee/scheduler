@@ -35,6 +35,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
         createMutation.mutate(data, { onSuccess: onClose })
     }
 
+    const activeMutation = isEditing ? updateMutation : createMutation
     const noteValue = watch('note') ?? ''
 
     return(
@@ -91,9 +92,13 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                 {errors.note && (
                     <span className='text-danger text-sm'>{errors.note.message}</span>
                 )}
-                
+                {activeMutation.error && (
+                    <span className='text-danger text-sm'>
+                        {activeMutation.error.message}
+                    </span>
+                )}
                 <button type='submit' className='bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium px-4 py-2 rounded-lg transition-colors'>
-                    {isEditing ? 'Обновить' : 'Добавить'}
+                    {activeMutation.isPending ? 'Сохранение...' : isEditing ? 'Обновить' : 'Добавить'}
                 </button>
             </form>
         </Modal>
