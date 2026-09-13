@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useClients, useRemoveClient } from '../hooks/clients'
 import type { Client, ModalState } from '../types/client'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
-import { formatPhoneDisplay } from '../components/clients/phone'
+import { formatPhoneDisplay, getUpdatedDigits } from '../components/clients/phone'
 
 export const ClientPage = () => {
     const { data: clients, isLoading, error } = useClients()
@@ -55,13 +55,7 @@ export const ClientPage = () => {
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         onChange={(e) => {
-                            const raw = e.target.value
-                            const newDigits = raw.replace(/\D/g, '').slice(0, 10)
-                            const oldDigits = phoneSearch ?? ''
-                            const isMaskCharDeleted = 
-                                newDigits.length === oldDigits.length 
-                                && raw.length < formatPhoneDisplay(oldDigits).length
-                            setPhoneSearch(isMaskCharDeleted ? newDigits.slice(0, -1) : newDigits)
+                            setPhoneSearch(getUpdatedDigits(e.target.value, phoneSearch ?? ''))
                         }}
                     />
                 </div>
@@ -93,7 +87,7 @@ export const ClientPage = () => {
                             filteredClients?.map((client: Client) => (
                                 <tr key={client.id} className='bg-row-alt even:bg-surface'>
                                     <td className='px-4 py-3 text-text truncate'>{client.name}</td>
-                                    <td className='px-4 py-3 text-text-secondary truncate'>{client.phone}</td>
+                                    <td className='px-4 py-3 text-text-secondary truncate'>+7 {formatPhoneDisplay(client.phone)}</td>
                                     <td className='px-4 py-3 text-text-muted truncate'>{client.note}</td>
                                     <td className='px-4 py-3 text-right space-x-3 whitespace-nowrap'>
                                         <button 
@@ -104,7 +98,7 @@ export const ClientPage = () => {
                                         </button>
                                         <button 
                                             onClick={() => handleDelete(client)}
-                                            className='px-3 py-2 bg-danger hover:bg-danger-hover  text-text-alt ont-medium text-sm rounded-lg transition-colors'
+                                            className='px-3 py-2 bg-danger hover:bg-danger-hover  text-text-alt font-medium text-sm rounded-lg transition-colors'
                                         >
                                             Удалить
                                         </button>

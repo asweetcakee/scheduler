@@ -3,7 +3,7 @@ import type { ClientFormModalProps } from '../../types/client'
 import { clientSchema, type ClientForm } from '../../schemas/clientSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateClient, useUpdateClient } from '../../hooks/clients'
-import { formatPhoneDisplay } from './phone'
+import { formatPhoneDisplay, getUpdatedDigits } from './phone'
 import { Modal } from '../shared/Modal'
 
 export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {   
@@ -62,13 +62,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                                 type='tel'
                                 value={formatPhoneDisplay(field.value ?? '')}
                                 onChange={(e) => {
-                                    const raw = e.target.value
-                                    const newDigits =  raw.replace(/\D/g, '').slice(0, 10)
-                                    const oldDigits = field.value ?? ''
-                                    const isMaskCharDeleted = 
-                                        newDigits.length === oldDigits.length
-                                        && raw.length < formatPhoneDisplay(oldDigits).length
-                                    field.onChange(isMaskCharDeleted ? newDigits.slice(0, -1) : newDigits)
+                                    field.onChange(getUpdatedDigits(e.target.value, field.value ?? ''))
                                 }}
                                 placeholder='(707) 123-45-67'
                                 className='outline-none flex-1'
