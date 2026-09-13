@@ -92,7 +92,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                     placeholder='Постоянный клиент'
                     rows={4}
                     maxLength={2000}
-                    className='border border-primary focus:border-accent-purple outline-none rounded px-3 py-2 resize-y min-h-[80px] max-h-[300px]'
+                    className='border border-primary focus:border-accent-purple outline-none rounded px-3 py-2 resize-y min-h-20 max-h-75'
                 />
                 {errors.note && (
                     <span className='text-danger text-sm'>{errors.note.message}</span>
