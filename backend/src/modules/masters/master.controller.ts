@@ -23,3 +23,16 @@ export const createMaster = async (
         next(error)
     }
 }
+
+export const getMaster = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const masters = await masterService.findAllMasters()
+        res.status(200).json(masters)
+    } catch (error) {
+        next(error)
+    }
+}

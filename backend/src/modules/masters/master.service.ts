@@ -7,3 +7,7 @@ export const createMaster = async (
 ) => {
     return masterRepository.create(name, phone, active)
 }
+
+export const findAllMasters = async () => {
+    return masterRepository.findMasters()
+}
