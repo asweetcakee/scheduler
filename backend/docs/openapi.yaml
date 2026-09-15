@@ -14,6 +14,8 @@ tags:
     description: Server health and status endpoints
   - name: Clients
     description: Clients CRUD endpoints
+  - name: Masters
+    description: Masters CRUD endpoints
 
 paths:
   /ping:
@@ -394,6 +396,338 @@ paths:
                   value:
                     error: "An unexpected error occurred"
 
+  /masters:
+    post:
+      tags:
+        - Masters
+      summary: Creates a new master
+      operationId: createMaster
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMasterRequest'
+      responses:
+        '201': 
+          description: Created - Master created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+        '401': 
+          description: Unauthorized - Authentication token missing or invalid/expired
+        '403':
+          description: Forbidden - Insufficient permissions
+        '409':
+          description: Conflict - Duplicate resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Phone exists
+                  value:
+                    error: "Master with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    get:
+      tags:
+        - Masters
+      summary: List of masters
+      description: > 
+        Returns a list of masters.
+        Returns all clients.
+      operationId: getMasters
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK - Successfully retrieved masters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterResponse'
+              examples:
+                allClients:
+                  summary: All masters
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      active: true
+                    - id: 2
+                      name: "Марина"
+                      phone: "7019876543"
+                      active: false
+
+                phoneMatch:
+                  summary: Master found by phone
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      active: true
+
+                phoneNotFound:
+                  summary: No master matches the phone
+                  value: []
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
+  /masters/{id}:
+    get:
+      tags:
+      - Masters
+      summary: Finds master
+      description: Returns a master based on its ID
+      operationId: getMasterById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved master
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'                  
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples: 
+                notFound:
+                  summary: Master not Found
+                  value:
+                    error: "Master not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    patch:
+      tags:
+      - Masters
+      summary: Updates master
+      description: Updates at least one field of a master
+      operationId: updateMasterById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody: 
+        required: true
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/UpdateMasterRequest'
+      responses:
+        '200':
+          description: OK - Master updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'
+        '400':
+          description: Bad Request - Invalid payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+                emptyBody:
+                  summary: Empty update request
+                  value:
+                    error: "At least one field must be provided to perform an update"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '409':
+          description: Conflict - Phone number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Duplicate phone
+                  value:
+                    error: "Master with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    delete:
+      tags:
+        - Masters
+      summary: Deletes master
+      description: Deletes master by ID
+      operationId: deleteMasterById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Master deleted successfully
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
 components:
   securitySchemes:
       BearerAuth: 
@@ -438,6 +772,19 @@ components:
         note:
           $ref: '#/components/schemas/NoteFormat'
 
+    CreateMasterRequest:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
+
     IdFormat:
       type: integer
       format: int64
@@ -466,6 +813,13 @@ components:
       examples: 
         - null
         - "Has an allergy to a product"
+    
+    ActiveFormat:
+      type: boolean
+      description: Indicates that the specialist is an active crew member. Default value - True
+      examples: 
+        - True
+        - False
 
     ClientResponse:
       type: object
@@ -483,6 +837,22 @@ components:
         note:
           $ref: '#/components/schemas/NoteFormat'
     
+    MasterResponse:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name: 
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
+
     UpdateClientRequest:
       type: object
       minProperties: 1
@@ -493,6 +863,17 @@ components:
           $ref: '#/components/schemas/PhoneFormat'
         note:
           $ref: '#/components/schemas/NoteFormat'
+
+    UpdateMasterRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          $ref: '#/components/schemas/NameFormat'
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
 
     ErrorResponse:
       type: object
