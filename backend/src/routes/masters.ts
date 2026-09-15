@@ -8,5 +8,6 @@ router.get('/', masterController.getMaster)
 router.get('/:id', validate({ params: masterParamsSchema }), masterController.getMasterById)
 router.post('/', validate({ body: createMasterSchema }), masterController.createMaster)
 router.patch('/:id', validate({ params: masterParamsSchema, body: updateMasterSchema }), masterController.updateMaster)
+router.delete('/:id', validate({ params: masterParamsSchema }), masterController.removeMaster)
 
 export default router

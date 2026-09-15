@@ -20,3 +20,7 @@ export const findMasterById = async (id: number) => {
 export const updateMaster = async (id: number, data: UpdateMasterInput) => {
     return masterRepository.update(id, data)
 }
+
+export const removeMaster = async (id: number) => {
+    return masterRepository.remove(id)
+}

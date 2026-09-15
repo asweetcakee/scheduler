@@ -89,3 +89,27 @@ export const updateMaster = async (
         next(error)
     }
 }
+
+export const removeMaster = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+        const { id } = req.validated.params as MasterParams
+        const result = await masterService.removeMaster(id)
+        if (!result) {
+            res.status(404).json({
+                error: 'Client not found'
+            })
+            return
+        }
+        res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
+}

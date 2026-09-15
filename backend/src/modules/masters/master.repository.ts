@@ -105,3 +105,17 @@ export const update = async (
         throw error
     }
 }
+
+export const remove = async (id: number): Promise<boolean> => {
+    try {
+        const result = await pool.query<MasterRow>(
+            `
+            DELETE FROM masters
+            WHERE id = $1
+            `, [id]
+        )
+        return (result.rowCount ?? 0) > 0
+    } catch (error) {
+        throw error
+    }
+}
