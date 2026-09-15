@@ -47,3 +47,18 @@ export const findMasters = async (): Promise<MasterRow[]> => {
         throw error
     }
 }
+
+export const findMasterById = async (id: number): Promise<MasterRow | null> => {
+    try {
+        const result = await pool.query<MasterRow>(
+            `
+            SELECT id, name, phone, active
+            FROM masters
+            WHERE id = $1
+            `, [id]
+        )
+        return result.rows[0] ?? null
+    } catch (error) {
+        throw error
+    }
+}

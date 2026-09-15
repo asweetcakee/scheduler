@@ -1,9 +1,10 @@
 import * as masterService from './master.service.js'
 import type { Request, Response, NextFunction } from 'express'
 import { z } from 'zod/v4'
-import type { createMasterSchema } from '../../schemas/masterSchema.js'
+import type { createMasterSchema, masterParamsSchema } from '../../schemas/masterSchema.js'
 
 type CreateMasterBody = z.infer<typeof createMasterSchema>
+type MasterParams = z.infer<typeof masterParamsSchema>
 
 export const createMaster = async (
     req: Request,
@@ -32,6 +33,30 @@ export const getMaster = async (
     try {
         const masters = await masterService.findAllMasters()
         res.status(200).json(masters)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getMasterById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+        const { id } = req.validated.params as MasterParams
+        const master = await masterService.findMasterById(id)
+        if (!master) {
+            res.status(404).json({
+                error: 'Master not found'
+            })
+            return
+        }
+        res.status(200).json(master)
     } catch (error) {
         next(error)
     }

@@ -11,3 +11,7 @@ export const createMaster = async (
 export const findAllMasters = async () => {
     return masterRepository.findMasters()
 }
+
+export const findMasterById = async (id: number) => {
+    return masterRepository.findMasterById(id)
+}

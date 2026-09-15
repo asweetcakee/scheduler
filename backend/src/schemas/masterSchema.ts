@@ -24,3 +24,7 @@ export const createMasterSchema = z.strictObject({
     phone: phoneField,
     active: activeField.optional()
 })
+
+export const masterParamsSchema = z.strictObject({
+    id: idParam
+})
