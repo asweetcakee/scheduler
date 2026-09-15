@@ -28,3 +28,16 @@ export const createMasterSchema = z.strictObject({
 export const masterParamsSchema = z.strictObject({
     id: idParam
 })
+
+export const updateMasterSchema = z.strictObject({
+    name: nameField.optional(),
+    phone: phoneField.optional(),
+    active: activeField.optional()
+}).refine(
+    (data) => Object.keys(data).length > 0,
+    {
+        error: 'At least one field must be provided'
+    }
+)
+
+export type UpdateMasterInput = z.infer<typeof updateMasterSchema>

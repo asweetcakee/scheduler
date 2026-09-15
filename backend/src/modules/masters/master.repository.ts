@@ -1,6 +1,7 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
+import type { UpdateMasterInput } from '../../schemas/masterSchema.js'
 
 type MasterRow = {
     id: number,
@@ -59,6 +60,48 @@ export const findMasterById = async (id: number): Promise<MasterRow | null> => {
         )
         return result.rows[0] ?? null
     } catch (error) {
+        throw error
+    }
+}
+
+export const update = async (
+    id: number,
+    data: UpdateMasterInput
+): Promise<MasterRow | null> => {
+    try {
+        const fields: string[] = []
+        const values: unknown[] = []
+        
+        if (data.name !== undefined) {
+            fields.push(`name = $${fields.length + 1}`)
+            values.push(data.name)
+        }
+
+        if (data.phone !== undefined) {
+            fields.push(`phone = $${fields.length + 1}`)
+            values.push(data.phone)
+        }
+
+        if (data.active !== undefined) {
+            fields.push(`active = $${fields.length + 1}`)
+            values.push(data.active)
+        }
+
+        values.push(id)
+
+        const result = await pool.query<MasterRow>(
+            `
+            UPDATE masters
+            SET ${fields.join(', ')}
+            WHERE id = $${values.length}
+            RETURNING id, name, phone, active
+            `, values
+        )
+        return result.rows[0] ?? null
+    } catch (error) {
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Master with this phone already exists')
+        }
         throw error
     }
 }

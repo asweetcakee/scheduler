@@ -1,3 +1,4 @@
+import type { UpdateMasterInput } from '../../schemas/masterSchema.js'
 import * as masterRepository from './master.repository.js'
 
 export const createMaster = async (
@@ -14,4 +15,8 @@ export const findAllMasters = async () => {
 
 export const findMasterById = async (id: number) => {
     return masterRepository.findMasterById(id)
+}
+
+export const updateMaster = async (id: number, data: UpdateMasterInput) => {
+    return masterRepository.update(id, data)
 }
