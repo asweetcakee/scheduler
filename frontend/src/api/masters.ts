@@ -13,3 +13,8 @@ export const getMasters = async(): Promise<Master[]> => {
     const response = await fetch(baseUrl)
     return handleResponse<Master[]>(response)
 }
+
+export const getMasterById = async(id: number): Promise<Master> => {
+    const response = await fetch(`${baseUrl}/${id}`)
+    return handleResponse<Master>(response)
+}
