@@ -15,6 +15,12 @@ type CreateMasterInput = {
     active?: boolean
 }
 
+type UpdateMasterInput = {
+    name?: string,
+    phone?: string,
+    active?: boolean
+}
+
 export const getMasters = async(): Promise<Master[]> => {
     const response = await fetch(baseUrl)
     return handleResponse<Master[]>(response)
@@ -28,6 +34,17 @@ export const getMasterById = async(id: number): Promise<Master> => {
 export const createMaster = async(data: CreateMasterInput): Promise<Master> => {
     const response = await fetch(baseUrl, {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    return handleResponse<Master>(response)
+}
+
+export const updateMaster = async(id: number, data: UpdateMasterInput): Promise<Master> => {
+    const response = await fetch(`${baseUrl}/${id}`, {
+        method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
         },
