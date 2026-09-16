@@ -1,25 +1,8 @@
+import type { CreateMasterInput, Master, UpdateMasterInput } from '../types/master'
+import { ApiError } from './apiError'
 import { handleResponse } from './handleResponse'
 
 const baseUrl = '/api/masters'
-
-type Master = {
-    id: number,
-    name: string,
-    phone: string,
-    active: boolean
-}
-
-type CreateMasterInput = {
-    name: string,
-    phone: string,
-    active?: boolean
-}
-
-type UpdateMasterInput = {
-    name?: string,
-    phone?: string,
-    active?: boolean
-}
 
 export const getMasters = async(): Promise<Master[]> => {
     const response = await fetch(baseUrl)
@@ -51,4 +34,15 @@ export const updateMaster = async(id: number, data: UpdateMasterInput): Promise<
         body: JSON.stringify(data)
     })
     return handleResponse<Master>(response)
+}
+
+export const deleteMaster = async(id: number): Promise<void> => {
+    const response = await fetch(`${baseUrl}/${id}`, {
+        method: 'DELETE'
+    })
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => null)
+        throw new ApiError(response.status, body, 'Failed to delete master')
+    }
 }
