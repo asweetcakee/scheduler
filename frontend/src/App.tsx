@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { AdminLayout } from './layout/AdminLayout'
 import { ClientPage } from './pages/ClientsPage'
+import { MastersPage } from './pages/MastersPage'
 
 const router = createBrowserRouter([
   {
@@ -8,7 +9,8 @@ const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <Navigate to='/clients' replace /> },
-      { path: 'clients', element: <ClientPage /> }
+      { path: 'clients', element: <ClientPage /> },
+      { path: 'masters', element: <MastersPage /> }
     ]
   }
 ])

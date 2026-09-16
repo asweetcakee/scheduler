@@ -11,6 +11,12 @@ export const Sidebar = () => {
                     >
                         Клиенты
                     </Link>
+                    <Link 
+                        to='/masters' 
+                        className='block w-full bg-primary hover:bg-primary-hover text-text-alt px-4 py-2 border-0 rounded-lg transition-colors'
+                    >
+                        Мастера
+                    </Link>
                 </div>
             </div>
         </div>
