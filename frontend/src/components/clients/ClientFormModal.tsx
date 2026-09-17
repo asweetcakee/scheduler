@@ -3,7 +3,7 @@ import type { ClientFormModalProps } from '../../types/client'
 import { clientSchema, type ClientForm } from '../../schemas/clientSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateClient, useUpdateClient } from '../../hooks/clients'
-import { formatPhoneDisplay, getUpdatedDigits } from './phone'
+import { formatPhoneDisplay, getUpdatedDigits } from '../shared/phone'
 import { Modal } from '../shared/Modal'
 
 export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {   

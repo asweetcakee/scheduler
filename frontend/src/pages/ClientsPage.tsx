@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useClients, useRemoveClient } from '../hooks/clients'
 import type { Client, ModalState } from '../types/client'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
-import { formatPhoneDisplay, getUpdatedDigits } from '../components/clients/phone'
+import { formatPhoneDisplay, getUpdatedDigits } from '../components/shared/phone'
 
 export const ClientPage = () => {
     const { data: clients, isLoading, error } = useClients()
