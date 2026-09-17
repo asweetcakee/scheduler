@@ -23,6 +23,14 @@
     --color-status-pending: #FFC100;
     --color-status-cancelled: #FF4747;
 
+    /* Statuses (General) */
+    --color-status-active: #57B657;
+    --color-status-active-bg: #CDE9CD;
+    --color-status-active-border: #245224;
+    --color-status-inactive: #FF0000;
+    --color-status-inactive-bg: #FFB8B8;
+    --color-status-inactive-border: #750000;
+
     /* Charts: bar */
     --color-chart-bar-1: #98BDFF;
     --color-chart-bar-2: #4B49AC;
