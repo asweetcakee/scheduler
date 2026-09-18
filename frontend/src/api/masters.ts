@@ -36,7 +36,7 @@ export const updateMaster = async(id: number, data: UpdateMasterInput): Promise<
     return handleResponse<Master>(response)
 }
 
-export const deleteMaster = async(id: number): Promise<void> => {
+export const removeMaster = async(id: number): Promise<void> => {
     const response = await fetch(`${baseUrl}/${id}`, {
         method: 'DELETE'
     })

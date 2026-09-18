@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react'
 import { formatPhoneDisplay, getUpdatedDigits } from '../components/shared/phone'
 import { Badge } from '../components/shared/Badge'
-import { useMasters } from '../hooks/masters'
-import type { Master } from '../types/master'
+import { useMasters, useRemoveMaster } from '../hooks/masters'
+import type { Master, ModalState } from '../types/master'
+import { MasterFormModal } from '../components/clients/MasterFormModal'
 
 export const MastersPage = () => {
     const { data: masters, isLoading, error } = useMasters()
     const [nameSearch, setNameSearch] = useState<string>('')
     const [phoneSearch, setPhoneSearch] = useState<string>('')
     const [isFocused, setIsFocused] = useState<boolean>(false)
+    const [modalState, setModalState] = useState<ModalState>(null)
     const showPrefix = isFocused || (phoneSearch ?? '').length > 0
+    const deleteMutation = useRemoveMaster()
 
     const filteredMasters = useMemo(() => {
         if (!masters) return []
@@ -23,12 +26,23 @@ export const MastersPage = () => {
     if (isLoading) return <p>Loading clients...</p>
     if (error) return <p>Error: {error.message}</p>
 
+    const handleOpenCreate = () => {
+        setModalState('create')
+    }
+
     const handleEdit = (master: Master) => {
-        return
+        setModalState(master)
     }
 
     const handleDelete = (master: Master) => {
-        return
+        const isConfirmed: boolean = window.confirm(`Вы действительно хотите удалить ${master.name}?`)
+        if (isConfirmed) {
+            deleteMutation.mutate(master.id)
+        }
+    }
+
+    const handleClose = () => {
+        setModalState(null)
     }
 
     const masterStatusMap = {
@@ -66,7 +80,9 @@ export const MastersPage = () => {
                         }}
                     />
                 </div>
-                <button className='bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium px-4 py-2 rounded-lg transition-colors'>
+                <button 
+                    onClick={handleOpenCreate}
+                    className='bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium px-4 py-2 rounded-lg transition-colors'>
                     Добавить
                 </button>
             </div>
@@ -102,11 +118,11 @@ export const MastersPage = () => {
                                                 onClick={() => handleEdit(master)}
                                                 className='px-3 py-2 bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium text-sm rounded-lg transition-colors'
                                             >
-                                                    Изменить
+                                                Изменить
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(master)}
-                                                className='px-3 py-2 bg-danger hover:bg-danger-hover  text-text-alt font-medium text-sm rounded-lg transition-colors'
+                                                className='px-3 py-2 bg-danger hover:bg-danger-hover text-text-alt font-medium text-sm rounded-lg transition-colors'
                                             >
                                                 Удалить
                                             </button>
@@ -117,6 +133,13 @@ export const MastersPage = () => {
                         }
                     </tbody>
                 </table>
+                {modalState !== null && (
+                    <MasterFormModal 
+                        key={ modalState === 'create' ? 'create' : modalState.id }
+                        master = { modalState === 'create' ? null : modalState }
+                        onClose = {handleClose}
+                    />
+                )}
             </div>
         </div>
     )
