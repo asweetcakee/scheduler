@@ -4,7 +4,7 @@ import { Modal } from '../shared/Modal'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateMaster, useUpdateMaster } from '../../hooks/masters'
 import type { MasterFormModalProps } from '../../types/master'
-import { formatPhoneDisplay, getUpdatedDigits } from '../shared/phone'
+import { formatPhoneDisplay, getUpdatedDigits, normalizePastedPhone } from '../shared/phone'
 
 export const MasterFormModal = ({ master, onClose }: MasterFormModalProps) => {
     const isEditing = master !== null
@@ -66,6 +66,11 @@ export const MasterFormModal = ({ master, onClose }: MasterFormModalProps) => {
                                 onChange={(e) => {
                                     field.onChange(getUpdatedDigits(e.target.value, field.value ?? ''))
                                 }}
+                                onPaste={(e) => {
+                                    e.preventDefault()
+                                    const raw = e.clipboardData.getData('text/plain')
+                                    field.onChange(normalizePastedPhone(raw))
+                                }}
                             />
                         </div>
                     )}
@@ -99,7 +104,11 @@ export const MasterFormModal = ({ master, onClose }: MasterFormModalProps) => {
                         />
                     </div>
                 )}
-
+                {activeMutation.error && (
+                    <span className='text-danger text-sm'>
+                        {activeMutation.error.message}
+                    </span>
+                )}
                 <button type='submit' className='bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-medium px-4 py-2 rounded-lg transition-colors'>
                     {activeMutation.isPending ? 'Сохранение...' : isEditing ? 'Обновить' : 'Добавить'}
                 </button>

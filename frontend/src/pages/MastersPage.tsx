@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { formatPhoneDisplay, getUpdatedDigits } from '../components/shared/phone'
+import { formatPhoneDisplay, getUpdatedDigits, normalizePastedPhone } from '../components/shared/phone'
 import { Badge } from '../components/shared/Badge'
 import { useMasters, useRemoveMaster } from '../hooks/masters'
 import type { Master, ModalState } from '../types/master'
@@ -77,6 +77,11 @@ export const MastersPage = () => {
                         onBlur={() => setIsFocused(false)}
                         onChange={(e) => {
                             setPhoneSearch(getUpdatedDigits(e.target.value.trim(), phoneSearch ?? ''))
+                        }}
+                        onPaste={(e) => {
+                            e.preventDefault()
+                            const raw = e.clipboardData.getData('text/plain')
+                            setPhoneSearch(normalizePastedPhone(raw))
                         }}
                     />
                 </div>

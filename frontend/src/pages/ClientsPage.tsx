@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useClients, useRemoveClient } from '../hooks/clients'
 import type { Client, ModalState } from '../types/client'
 import { ClientFormModal } from '../components/clients/ClientFormModal'
-import { formatPhoneDisplay, getUpdatedDigits } from '../components/shared/phone'
+import { formatPhoneDisplay, getUpdatedDigits, normalizePastedPhone } from '../components/shared/phone'
 
 export const ClientPage = () => {
     const { data: clients, isLoading, error } = useClients()
@@ -56,6 +56,11 @@ export const ClientPage = () => {
                         onBlur={() => setIsFocused(false)}
                         onChange={(e) => {
                             setPhoneSearch(getUpdatedDigits(e.target.value, phoneSearch ?? ''))
+                        }}
+                        onPaste={(e) => {
+                            e.preventDefault()
+                            const raw = e.clipboardData.getData('text/plain')
+                            setPhoneSearch(normalizePastedPhone(raw))
                         }}
                     />
                 </div>

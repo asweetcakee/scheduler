@@ -3,7 +3,7 @@ import type { ClientFormModalProps } from '../../types/client'
 import { clientSchema, type ClientForm } from '../../schemas/clientSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCreateClient, useUpdateClient } from '../../hooks/clients'
-import { formatPhoneDisplay, getUpdatedDigits } from '../shared/phone'
+import { formatPhoneDisplay, getUpdatedDigits, normalizePastedPhone } from '../shared/phone'
 import { Modal } from '../shared/Modal'
 
 export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {   
@@ -19,6 +19,7 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
         formState: { errors }
     } = useForm<ClientForm>({
         resolver: zodResolver(clientSchema),
+        mode: 'onBlur',
         defaultValues: client
             ? { name: client.name, phone: client.phone, note: client.note }
             : { name: '', phone: '', note: '' }
@@ -64,6 +65,11 @@ export const ClientFormModal = ({ client, onClose }: ClientFormModalProps) => {
                                 value={formatPhoneDisplay(field.value ?? '')}
                                 onChange={(e) => {
                                     field.onChange(getUpdatedDigits(e.target.value, field.value ?? ''))
+                                }}
+                                onPaste={(e) => {
+                                    e.preventDefault()
+                                    const raw = e.clipboardData.getData('text/plain')
+                                    field.onChange(normalizePastedPhone(raw))
                                 }}
                                 placeholder='(707) 123-45-67'
                                 className='outline-none flex-1'
