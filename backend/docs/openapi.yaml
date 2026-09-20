@@ -14,6 +14,10 @@ tags:
     description: Server health and status endpoints
   - name: Clients
     description: Clients CRUD endpoints
+  - name: Masters
+    description: Masters CRUD endpoints
+  - name: Services
+    description: Services CRUD endpoints
 
 paths:
   /ping:
@@ -259,7 +263,7 @@ paths:
       - Clients
       summary: Updates client
       description: Updates at least one field of a client
-      operationId: updateClientById
+      operationId: updateClient
       security:
         - BearerAuth: []
       parameters:
@@ -343,7 +347,7 @@ paths:
         - Clients
       summary: Deletes Client
       description: Deletes client by ID
-      operationId: deleteClientById
+      operationId: removeClient
       security:
         - BearerAuth: []
       parameters:
@@ -394,6 +398,651 @@ paths:
                   value:
                     error: "An unexpected error occurred"
 
+  /masters:
+    post:
+      tags:
+        - Masters
+      summary: Creates a new master
+      operationId: createMaster
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMasterRequest'
+      responses:
+        '201': 
+          description: Created - Master created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+        '401': 
+          description: Unauthorized - Authentication token missing or invalid/expired
+        '403':
+          description: Forbidden - Insufficient permissions
+        '409':
+          description: Conflict - Duplicate resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Phone exists
+                  value:
+                    error: "Master with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    get:
+      tags:
+        - Masters
+      summary: List of masters
+      description: > 
+        Returns a list of masters.
+        Returns all clients.
+      operationId: getMasters
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK - Successfully retrieved masters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterResponse'
+              examples:
+                allMasters:
+                  summary: All masters
+                  value:
+                    - id: 1
+                      name: "Алия"
+                      phone: "7071234567"
+                      active: true
+                    - id: 2
+                      name: "Марина"
+                      phone: "7019876543"
+                      active: false
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+  /masters/{id}:
+    get:
+      tags:
+      - Masters
+      summary: Finds master
+      description: Returns a master based on its ID
+      operationId: getMasterById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved master
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'                  
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples: 
+                notFound:
+                  summary: Master not Found
+                  value:
+                    error: "Master not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    patch:
+      tags:
+      - Masters
+      summary: Updates master
+      description: Updates at least one field of a master
+      operationId: updateMaster
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody: 
+        required: true
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/UpdateMasterRequest'
+      responses:
+        '200':
+          description: OK - Master updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterResponse'
+        '400':
+          description: Bad Request - Invalid payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPhone:
+                  summary: Invalid phone format
+                  value:
+                    error: "Phone number must be a 10-digit Kazakhstan number"
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Name cannot be empty or blank"
+                emptyBody:
+                  summary: Empty update request
+                  value:
+                    error: "At least one field must be provided to perform an update"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '409':
+          description: Conflict - Phone number already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Duplicate phone
+                  value:
+                    error: "Master with this phone number already exists"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    delete:
+      tags:
+        - Masters
+      summary: Deletes master
+      description: Deletes master by ID
+      operationId: removeMaster
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Master deleted successfully
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
+  /services:
+    post:
+      tags:
+        - Services
+      summary: Creates a new service
+      operationId: createService
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceRequest'
+      responses:
+        '201': 
+          description: Created - Service created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Service name cannot be empty or blank"
+                invalidPrice:
+                  summary: Invalid price format and hold numeric value
+                  value:
+                    error: "Price must follow string format"
+                invalidDuration:
+                  summary: Invalid duration format
+                  value:
+                    error: "Duration must follow Integer format"
+        '401': 
+          description: Unauthorized - Authentication token missing or invalid/expired
+        '403':
+          description: Forbidden - Insufficient permissions
+        '409':
+          description: Conflict - Duplicate resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Name exists
+                  value:
+                    error: "Service with this name already exists"
+        '422':
+          description: Unprocessable Entity - Business rule is violated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPrice:
+                  summary: CHECK violation - Service price must be >= 0
+                  value:
+                    error: "Price must be >= 0"
+                invalidDuration:
+                  summary: CHECK violation - Service duration must be > 0
+                  value:
+                    error: "Duration must be > 0"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    get:
+      tags:
+        - Services
+      summary: List of services
+      description: > 
+        Returns a list of services.
+        Returns all services.
+      operationId: getServices
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: OK - Successfully retrieved services
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceResponse'
+              examples:
+                allServices:
+                  summary: All services
+                  value:
+                    - id: 1
+                      name: “Стрижка мужская”
+                      price: "3500.00"
+                      duration: 3600
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+  /services/{id}:
+    get:
+      tags:
+      - Services
+      summary: Finds service
+      description: Returns a service based on its ID
+      operationId: getServiceById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the service
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Service ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Service not found
+                  value:
+                    error: "Service not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    patch:
+      tags:
+      - Services
+      summary: Updates service
+      description: Updates at least one field of a service
+      operationId: updateService
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the service
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody: 
+        required: true
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/UpdateServiceRequest'
+      responses:
+        '200':
+          description: OK - Service updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400':
+          description: Bad Request - Invalid payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                emptyName:
+                  summary: Empty name
+                  value:
+                    error: "Service name cannot be empty or blank"
+                invalidPrice:
+                  summary: Invalid price format and hold numeric value
+                  value:
+                    error: "Price must follow string format"
+                invalidDuration:
+                  summary: Invalid duration format
+                  value:
+                    error: "Duration must follow Integer format"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Service not found
+                  value:
+                    error: "Service not found"
+        '409':
+          description: Conflict - Service name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                duplicatePhone:
+                  summary: Name exists
+                  value:
+                    error: "Service with this name already exists"
+        '422':
+          description: Unprocessable Entity - Business rule is violated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidPrice:
+                  summary: CHECK violation - Service price must be >= 0
+                  value:
+                    error: "Price must be >= 0"
+                invalidDuration:
+                  summary: CHECK violation - Service duration must be > 0
+                  value:
+                    error: "Duration must be > 0"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    delete:
+      tags:
+        - Services
+      summary: Deletes service
+      description: Deletes service by ID
+      operationId: removeService
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the service
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Service deleted successfully
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Service ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Service not found
+                  value:
+                    error: "Service not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
 components:
   securitySchemes:
       BearerAuth: 
@@ -438,6 +1087,43 @@ components:
         note:
           $ref: '#/components/schemas/NoteFormat'
 
+    CreateMasterRequest:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        type: string
+        minLength: 1
+        pattern: '^\s*\S.*$'
+        description: Master's name. Cannot be empty or blank
+        examples:
+          - "Алия"
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
+
+    CreateServiceRequest:
+      type: object
+      required:
+        - name
+        - price
+        - duration
+      properties:
+        name:
+          type: string
+          minLength: 1
+          pattern: '^\s*\S.*$'
+          description: Service name. Cannot be empty or blank
+          examples:
+            - "Стрижка мужская"
+        price:
+          $ref: '#/components/schemas/PriceFormat'
+        duration:
+          $ref: '#/components/schemas/DurationFormat'
+
+
     IdFormat:
       type: integer
       format: int64
@@ -466,6 +1152,25 @@ components:
       examples: 
         - null
         - "Has an allergy to a product"
+    
+    ActiveFormat:
+      type: boolean
+      description: Indicates that the specialist is an active crew member. Default value - True
+      examples: 
+        - True
+        - False
+
+    PriceFormat:
+      type: string
+      description: The cost of the service, accurate to two decimal places. In DB used as Numeric, in API contract as String
+      examples:
+        - "3500.00"
+
+    DurationFormat:
+      type: integer
+      description: Service duration in seconds
+      examples:
+        - 3600
 
     ClientResponse:
       type: object
@@ -483,6 +1188,49 @@ components:
         note:
           $ref: '#/components/schemas/NoteFormat'
     
+    MasterResponse:
+      type: object
+      required:
+        - id
+        - name
+        - phone
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name: 
+          type: string
+          minLength: 1
+          pattern: '^\s*\S.*$'
+          description: Master's name. Cannot be empty or blank
+          examples:
+            - "Алия"
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
+
+    ServiceResponse:
+      type: object
+      required:
+        - id
+        - name
+        - price
+        - duration
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name: 
+          type: string
+          minLength: 1
+          pattern: '^\s*\S.*$'
+          description: Service name. Cannot be empty or blank
+          examples:
+            - "Стрижка мужская"
+        price:
+          $ref: '#/components/schemas/PriceFormat'
+        duration:
+          $ref: '#/components/schemas/DurationFormat'
+
     UpdateClientRequest:
       type: object
       minProperties: 1
@@ -493,6 +1241,39 @@ components:
           $ref: '#/components/schemas/PhoneFormat'
         note:
           $ref: '#/components/schemas/NoteFormat'
+
+    UpdateMasterRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          pattern: '^\s*\S.*$'
+          description: Master's name. Cannot be empty or blank
+          examples:
+            - "Алия"
+        phone:
+          $ref: '#/components/schemas/PhoneFormat'
+        active:
+          $ref: '#/components/schemas/ActiveFormat'
+
+    UpdateServiceRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name: 
+          name: 
+          type: string
+          minLength: 1
+          pattern: '^\s*\S.*$'
+          description: Service name. Cannot be empty or blank
+          examples:
+            - "Стрижка мужская"
+        price:
+          $ref: '#/components/schemas/PriceFormat'
+        duration:
+          $ref: '#/components/schemas/DurationFormat'
 
     ErrorResponse:
       type: object

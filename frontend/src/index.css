@@ -1,1 +1,61 @@
-@import "tailwindcss"
+@import "tailwindcss";
+
+@theme {
+    /* Primary: buttons, active state, highlight, logo */
+    --color-primary: #4B49AC;
+    --color-primary-hover: #4747A1;
+
+    /* Supporting accents, badge, decorative, hover */
+    --color-accent-blue: #7DA0FA;
+    --color-accent-blue-hover: #96B2FB;
+    --color-accent-purple: #7978E9;
+    --color-accent-purple-hover: #8F8EED;
+
+    /* Destructive action */
+    --color-danger: #F3797E;
+    --color-danger-hover: #F59095;
+
+    /* Icon-on-color combo */
+    --color-icon-bg: #7EBBFF;
+
+    /* Statuses (Appointments) */
+    --color-status-completed: #57B657;
+    --color-status-pending: #FFC100;
+    --color-status-cancelled: #FF4747;
+
+    /* Statuses (General) */
+    --color-status-active: #57B657;
+    --color-status-active-bg: #CDE9CD;
+    --color-status-active-border: #245224;
+    --color-status-inactive: #FF0000;
+    --color-status-inactive-bg: #FFB8B8;
+    --color-status-inactive-border: #750000;
+
+    /* Charts: bar */
+    --color-chart-bar-1: #98BDFF;
+    --color-chart-bar-2: #4B49AC;
+
+    /* Charts: line */
+    --color-chart-line-1: #F09397;
+    --color-chart-line-2: #4747A1;
+
+    /* Charts: pie/donut */
+    --color-chart-pie-1: #248AFD;
+    --color-chart-pie-2: #FF4747;
+    --color-chart-pie-3: #FFC100;
+    --color-chart-pie-4: #98BDFF;
+    --color-chart-pie-5: #4B49AC;
+
+    /* Text */
+    --color-text: #1F1F1F;
+    --color-text-alt: #FFFFFF;
+    --color-text-data: #000000;
+    --color-text-secondary: #595C5F;
+    --color-text-muted: #8A99AD;
+
+    /* Neutrals */
+    --color-surface: #FFFFFF;        /* card/modal bg */
+    --color-page: #F5F7FF;           /* page bg */
+    --color-row-alt: #F2F2F2;        /* alternating table rows */
+    --color-progress-bg: #E9ECEF;
+}
