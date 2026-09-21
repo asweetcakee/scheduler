@@ -1,6 +1,7 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
+import type { UpdateServiceInput } from '../../schemas/serviceSchema.js'
 
 type ServiceRow = {
     id: number,
@@ -60,6 +61,48 @@ export const findServiceById = async(id: number): Promise<ServiceRow | null> => 
         )
         return result.rows[0] ?? null
     } catch (error) {
+        throw error
+    }
+}
+
+export const update = async(
+    id: number, 
+    data: UpdateServiceInput
+): Promise<ServiceRow | null> => {
+    try {
+        const fields: string[] = []
+        const values: unknown[] = []
+
+        if (data.name !== undefined) {
+            fields.push(`name = $${fields.length + 1}`)
+            values.push(data.name)
+        }
+
+        if (data.price !== undefined) {
+            fields.push(`price = $${fields.length + 1}`)
+            values.push(data.price)
+        }
+
+        if (data.duration !== undefined) {
+            fields.push(`duration = $${fields.length + 1}`)
+            values.push(data.duration)
+        }
+
+        values.push(id)
+
+        const result = await pool.query<ServiceRow>(
+            `
+            UPDATE services
+            SET ${fields.join(', ')}
+            WHERE id = $${values.length}
+            RETURNING id, name, price, duration
+            `, values
+        )
+        return result.rows[0] ?? null
+    } catch (error) {
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Service with this name already exists')
+        }
         throw error
     }
 }

@@ -1,3 +1,4 @@
+import type { UpdateServiceInput } from '../../schemas/serviceSchema.js'
 import * as serviceRepository from './service.repository.js'
 
 export const createService = async (
@@ -14,4 +15,8 @@ export const findAllServices = async () => {
 
 export const findServiceById = async (id: number) => {
     return serviceRepository.findServiceById(id)
+}
+
+export const updateService = async (id: number, data: UpdateServiceInput) => {
+    return serviceRepository.update(id, data)
 }

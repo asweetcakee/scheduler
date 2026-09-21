@@ -30,3 +30,16 @@ export const createServiceSchema = z.strictObject({
 export const serviceParamsSchema = z.strictObject({
     id: idParam
 })
+
+export const updateServiceSchema = z.strictObject({
+    name: nameField.optional(),
+    price: priceField.optional(),
+    duration: durationField.optional()
+}).refine(
+    (data) => Object.keys(data).length > 0,
+    {
+        error: 'At least one field must be provided'
+    }
+)
+
+export type UpdateServiceInput = z.infer<typeof updateServiceSchema>
