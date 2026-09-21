@@ -11,3 +11,7 @@ export const createService = async (
 export const findAllServices = async () => {
     return serviceRepository.findServices()
 }
+
+export const findServiceById = async (id: number) => {
+    return serviceRepository.findServiceById(id)
+}

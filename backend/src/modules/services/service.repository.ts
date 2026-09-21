@@ -48,3 +48,18 @@ export const findServices = async(): Promise<ServiceRow[]> => {
         throw error
     }
 }
+
+export const findServiceById = async(id: number): Promise<ServiceRow | null> => {
+        try {
+        const result = await pool.query<ServiceRow>(
+            `
+            SELECT id, name, price, duration
+            FROM services
+            WHERE id = $1
+            `, [id]
+        )
+        return result.rows[0] ?? null
+    } catch (error) {
+        throw error
+    }
+}

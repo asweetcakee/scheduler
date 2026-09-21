@@ -1,9 +1,11 @@
 import type { NextFunction, Request, Response } from 'express'
 import * as serviceService from './service.service.js'
 import { z } from 'zod/v4'
-import type { createServiceSchema } from '../../schemas/serviceSchema.js'
+import type { createServiceSchema, serviceParamsSchema } from '../../schemas/serviceSchema.js'
+import { error } from 'node:console'
 
 type CreateServiceBody = z.infer<typeof createServiceSchema>
+type ServiceParams = z.infer<typeof serviceParamsSchema>
 
 export const createService = async(
     req: Request,
@@ -32,6 +34,28 @@ export const getServices = async(
     try {
         const services = await serviceService.findAllServices()
         res.status(200).json(services)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getServiceById = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+        const { id } = req.validated.params as ServiceParams
+        const service = await serviceService.findServiceById(id)
+        if (!service) {
+            res.status(404).json({ error: 'Service not found' })
+            return
+        }
+        res.status(200).json(service)
     } catch (error) {
         next(error)
     }

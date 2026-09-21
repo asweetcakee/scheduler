@@ -27,3 +27,6 @@ export const createServiceSchema = z.strictObject({
     duration: durationField
 })
 
+export const serviceParamsSchema = z.strictObject({
+    id: idParam
+})
