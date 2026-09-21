@@ -23,3 +23,16 @@ export const createService = async(
         next(error)
     }
 }
+
+export const getServices = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        const services = await serviceService.findAllServices()
+        res.status(200).json(services)
+    } catch (error) {
+        next(error)
+    }
+}

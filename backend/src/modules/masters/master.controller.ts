@@ -28,7 +28,7 @@ export const createMaster = async (
     }
 }
 
-export const getMaster = async (
+export const getMasters = async (
     req: Request,
     res: Response,
     next: NextFunction
