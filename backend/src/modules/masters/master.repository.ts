@@ -36,32 +36,24 @@ export const create = async (
 }
 
 export const findMasters = async (): Promise<MasterRow[]> => {
-    try {
-        const result = await pool.query<MasterRow>(
-            `
-            SELECT id, name, phone, active
-            FROM masters
-            `
-        )
-        return result.rows
-    } catch (error) {
-        throw error
-    }
+    const result = await pool.query<MasterRow>(
+        `
+        SELECT id, name, phone, active
+        FROM masters
+        `
+    )
+    return result.rows
 }
 
 export const findMasterById = async (id: number): Promise<MasterRow | null> => {
-    try {
-        const result = await pool.query<MasterRow>(
-            `
-            SELECT id, name, phone, active
-            FROM masters
-            WHERE id = $1
-            `, [id]
-        )
-        return result.rows[0] ?? null
-    } catch (error) {
-        throw error
-    }
+    const result = await pool.query<MasterRow>(
+        `
+        SELECT id, name, phone, active
+        FROM masters
+        WHERE id = $1
+        `, [id]
+    )
+    return result.rows[0] ?? null
 }
 
 export const update = async (
@@ -107,15 +99,11 @@ export const update = async (
 }
 
 export const remove = async (id: number): Promise<boolean> => {
-    try {
-        const result = await pool.query<MasterRow>(
-            `
-            DELETE FROM masters
-            WHERE id = $1
-            `, [id]
-        )
-        return (result.rowCount ?? 0) > 0
-    } catch (error) {
-        throw error
-    }
+    const result = await pool.query<MasterRow>(
+        `
+        DELETE FROM masters
+        WHERE id = $1
+        `, [id]
+    )
+    return (result.rowCount ?? 0) > 0
 }

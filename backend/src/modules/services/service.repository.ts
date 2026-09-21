@@ -37,32 +37,24 @@ export const create = async(
 }
 
 export const findServices = async(): Promise<ServiceRow[]> => {
-    try {
-        const result = await pool.query<ServiceRow>(
-            `
-            SELECT id, name, price, duration
-            FROM services
-            `
-        )
-        return result.rows
-    } catch (error) {
-        throw error
-    }
+    const result = await pool.query<ServiceRow>(
+        `
+        SELECT id, name, price, duration
+        FROM services
+        `
+    )
+    return result.rows
 }
 
 export const findServiceById = async(id: number): Promise<ServiceRow | null> => {
-        try {
-        const result = await pool.query<ServiceRow>(
-            `
-            SELECT id, name, price, duration
-            FROM services
-            WHERE id = $1
-            `, [id]
-        )
-        return result.rows[0] ?? null
-    } catch (error) {
-        throw error
-    }
+    const result = await pool.query<ServiceRow>(
+        `
+        SELECT id, name, price, duration
+        FROM services
+        WHERE id = $1
+        `, [id]
+    )
+    return result.rows[0] ?? null
 }
 
 export const update = async(
