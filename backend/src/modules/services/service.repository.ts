@@ -1,6 +1,7 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
-import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
+import { isCheckViolation, isInvalidTextRepresentation, isUniqueViolation } from '../../errors/pgErrorCodes.js'
+import { UnprocessableEntityError } from '../../errors/UnprocessableEntityError.js'
 import type { UpdateServiceInput } from '../../schemas/serviceSchema.js'
 
 type ServiceRow = {
@@ -31,6 +32,12 @@ export const create = async(
     } catch (error) {
         if (isUniqueViolation(error)) {
             throw new ConflictError('Service with this name already exists')
+        }
+        if (isCheckViolation(error)) {
+            throw new UnprocessableEntityError('Price must be non-negative and duration must be positive')
+        }
+        if (isInvalidTextRepresentation(error)) {
+            throw new UnprocessableEntityError('Invalid price or duration format')
         }
         throw error
     }
@@ -94,6 +101,12 @@ export const update = async(
     } catch (error) {
         if (isUniqueViolation(error)) {
             throw new ConflictError('Service with this name already exists')
+        }
+        if (isCheckViolation(error)) {
+            throw new UnprocessableEntityError('Price must be non-negative and duration must be positive')
+        }
+        if (isInvalidTextRepresentation(error)) {
+            throw new UnprocessableEntityError('Invalid price or duration format')
         }
         throw error
     }

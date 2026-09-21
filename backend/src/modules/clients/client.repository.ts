@@ -1,6 +1,6 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
-import { isUniqueViolation } from '../../errors/isUniqueViolation.js'
+import { isUniqueViolation } from '../../errors/pgErrorCodes.js'
 import type { UpdateClientInput } from '../../schemas/clientSchema.js'
 
 type ClientRow = {

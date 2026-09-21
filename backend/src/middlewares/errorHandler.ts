@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import { ZodError } from 'zod/v4'
 import { ConflictError } from '../errors/ConflictError.js'
+import { UnprocessableEntityError } from '../errors/UnprocessableEntityError.js'
 
 export const errorHandler = (
     error: unknown,
@@ -20,6 +21,13 @@ export const errorHandler = (
 
     if (error instanceof ConflictError) {
         res.status(409).json({
+            error: error.message
+        })
+        return
+    }
+
+    if (error instanceof UnprocessableEntityError) {
+        res.status(422).json({
             error: error.message
         })
         return
