@@ -83,3 +83,25 @@ export const updateService = async(
         next(error)
     }
 }
+
+export const removeService = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+        const { id } = req.validated.params as ServiceParams
+        const service = await serviceService.removeService(id)
+        if (!service) {
+            res.status(404).json({ error: 'Service not found' })
+            return
+        }
+        res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
+}

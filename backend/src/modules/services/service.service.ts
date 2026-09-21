@@ -20,3 +20,7 @@ export const findServiceById = async (id: number) => {
 export const updateService = async (id: number, data: UpdateServiceInput) => {
     return serviceRepository.update(id, data)
 }
+
+export const removeService = async (id: number) => {
+    return serviceRepository.remove(id)
+}
