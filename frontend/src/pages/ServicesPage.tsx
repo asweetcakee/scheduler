@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import { useServices } from '../hooks/services'
-import type { Service } from '../types/services'
+import { useRemoveService, useServices } from '../hooks/services'
+import type { Service } from '../types/service'
 
 export const ServicesPage = () => {
     const { data: services, isLoading, error } = useServices()
     const [nameSearch, setNameSearch] = useState<string>('')
+    const deleteMutation = useRemoveService()
 
     const filteredServices = useMemo(() => {
         if (!services) return []
@@ -25,7 +26,10 @@ export const ServicesPage = () => {
     }
 
     const handleDelete= (service: Service) => {
-        return
+        const isConfirmed: boolean = window.confirm(`Вы действительно хотите удалить услугу '${service.name}'`)
+        if (isConfirmed) {
+            deleteMutation.mutate(service.id)
+        }
     }
     return(
         <div className='flex flex-col'>
