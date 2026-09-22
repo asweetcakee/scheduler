@@ -3,7 +3,7 @@ import { formatPhoneDisplay, getUpdatedDigits, normalizePastedPhone } from '../c
 import { Badge } from '../components/shared/Badge'
 import { useMasters, useRemoveMaster } from '../hooks/masters'
 import type { Master, ModalState } from '../types/master'
-import { MasterFormModal } from '../components/clients/MasterFormModal'
+import { MasterFormModal } from '../components/masters/MasterFormModal'
 
 export const MastersPage = () => {
     const { data: masters, isLoading, error } = useMasters()
