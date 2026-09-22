@@ -16,3 +16,10 @@ export type UpdateServiceInput = {
     price?: string,
     duration?: number
 }
+
+export type ModalState = 'create' | Service | null
+
+export type ServiceFormModalProps = {
+    service: Service | null,
+    onClose: () => void
+}

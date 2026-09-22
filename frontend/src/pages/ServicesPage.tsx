@@ -1,10 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useRemoveService, useServices } from '../hooks/services'
 import type { Service } from '../types/service'
+import type { ModalState } from '../types/service'
+import { ServiceFormModal } from '../components/services/ServiceFormModal'
+import { secondsToMinutes } from '../components/services/duration'
 
 export const ServicesPage = () => {
     const { data: services, isLoading, error } = useServices()
     const [nameSearch, setNameSearch] = useState<string>('')
+    const [modalState, setModalState] = useState<ModalState>(null)
     const deleteMutation = useRemoveService()
 
     const filteredServices = useMemo(() => {
@@ -18,11 +22,11 @@ export const ServicesPage = () => {
     if (error) return <p>Error: {error.message}</p>
 
     const handleOpenCreate = () => {
-        return
+        setModalState('create')
     }
 
     const handleEdit = (service: Service) => {
-        return
+        setModalState(service)
     }
 
     const handleDelete= (service: Service) => {
@@ -30,6 +34,10 @@ export const ServicesPage = () => {
         if (isConfirmed) {
             deleteMutation.mutate(service.id)
         }
+    }
+
+    const onClose = () => {
+        setModalState(null)
     }
     return(
         <div className='flex flex-col'>
@@ -70,7 +78,7 @@ export const ServicesPage = () => {
                             <tr key={service.id} className='bg-row-alt even:bg-surface'>
                                 <td className='px-4 py-3 text-text truncate'>{service.name}</td>
                                 <td className='px-4 py-3 text-text-secondary truncate'>{service.price}</td>
-                                <td className='px-4 py-3 text-text-muted truncate'>{service.duration / 60} минут</td>
+                                <td className='px-4 py-3 text-text-muted truncate'>{secondsToMinutes(service.duration)} минут</td>
                                 <td className='px-4 py-3 text-right space-x-3 whitespace-nowrap'>
                                     <button 
                                         onClick={() => handleEdit(service)}
@@ -89,6 +97,13 @@ export const ServicesPage = () => {
                         ))}
                     </tbody>
                 </table>
+                {modalState !== null && (
+                    <ServiceFormModal
+                        key={ modalState === 'create' ? 'create' : modalState.id }
+                        service={ modalState === 'create' ? null : modalState }
+                        onClose={ onClose }
+                    />
+                )}
             </div>
         </div>
     )
