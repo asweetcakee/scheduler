@@ -705,6 +705,360 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
+  /masters/{id}/schedule:
+    get:
+      tags:
+        - Masters
+      summary: Gets master schedule
+      description: Returns all schedule intervals for a master
+      operationId: getMasterSchedule
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Successfully retrieved master schedule
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterScheduleIntervalResponse'
+              examples:
+                schedule:
+                  summary: Master weekly schedule
+                  value:
+                    - id: 1
+                      day_of_week: 1
+                      starts_at: "09:00:00"
+                      ends_at: "14:00:00"
+                    - id: 2
+                      day_of_week: 1
+                      starts_at: "15:00:00"
+                      ends_at: "19:00:00"
+                    - id: 3
+                      day_of_week: 3
+                      starts_at: "10:00:00"
+                      ends_at: "18:00:00"
+                emptySchedule:
+                  summary: Master has no schedule
+                  value: []
+        '400':
+          description: Bad Request - Invalid master ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
+  /masters/{id}/schedule/intervals:
+    post:
+      tags:
+        - Masters
+      summary: Creates a schedule interval
+      description: Creates a new working interval for a master on a specific day of the week
+      operationId: createMasterScheduleInterval
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMasterScheduleIntervalRequest'
+      responses:
+        '201':
+          description: Created - Schedule interval created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleIntervalResponse'
+        '400':
+          description: Bad Request - Invalid payload or master ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid master ID format
+                  value:
+                    error: "Master ID must be a valid numeric string"
+                invalidDay:
+                  summary: Invalid day of week
+                  value:
+                    error: "Day of week must be between 1 and 7"
+                invalidTime:
+                  summary: Invalid time format
+                  value:
+                    error: "Time must be in HH:mm:ss format"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                notFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+        '409':
+          description: Conflict - Schedule interval overlaps with an existing interval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlap:
+                  summary: Overlapping schedule interval
+                  value:
+                    error: "Schedule interval overlaps with an existing interval"
+        '422':
+          description: Unprocessable Entity - Business rule is violated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidTimeRange:
+                  summary: Invalid time range
+                  value:
+                    error: "Start time must be earlier than end time"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+
+  /masters/{id}/schedule/intervals/{intervalId}:
+    patch:
+      tags:
+        - Masters
+      summary: Updates a schedule interval
+      description: Updates at least one field of an existing schedule interval
+      operationId: updateMasterScheduleInterval
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: intervalId
+          in: path
+          required: true
+          description: Unique identifier for the schedule interval
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMasterScheduleIntervalRequest'
+      responses:
+        '200':
+          description: OK - Schedule interval updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleIntervalResponse'
+        '400':
+          description: Bad Request - Invalid payload or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "ID must be a valid numeric string"
+                emptyBody:
+                  summary: Empty update request
+                  value:
+                    error: "At least one field must be provided to perform an update"
+                invalidDay:
+                  summary: Invalid day of week
+                  value:
+                    error: "Day of week must be between 1 and 7"
+                invalidTime:
+                  summary: Invalid time format
+                  value:
+                    error: "Time must be in HH:mm:ss format"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master or schedule interval not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                masterNotFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+                intervalNotFound:
+                  summary: Schedule interval not found
+                  value:
+                    error: "Schedule interval not found"
+        '409':
+          description: Conflict - Schedule interval overlaps with an existing interval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                overlap:
+                  summary: Overlapping schedule interval
+                  value:
+                    error: "Schedule interval overlaps with an existing interval"
+        '422':
+          description: Unprocessable Entity - Business rule is violated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidTimeRange:
+                  summary: Invalid time range
+                  value:
+                    error: "Start time must be earlier than end time"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
+    delete:
+      tags:
+        - Masters
+      summary: Deletes a schedule interval
+      description: Deletes a specific schedule interval of a master
+      operationId: removeMasterScheduleInterval
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique identifier for the master
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: intervalId
+          in: path
+          required: true
+          description: Unique identifier for the schedule interval
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Schedule interval deleted successfully
+        '400':
+          description: Bad Request - Invalid ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidId:
+                  summary: Invalid ID format
+                  value:
+                    error: "ID must be a valid numeric string"
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Not Found - Master or schedule interval not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                masterNotFound:
+                  summary: Master not found
+                  value:
+                    error: "Master not found"
+                intervalNotFound:
+                  summary: Schedule interval not found
+                  value:
+                    error: "Schedule interval not found"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                serverError:
+                  summary: Internal error
+                  value:
+                    error: "An unexpected error occurred"
 
   /services:
     post:
@@ -1043,6 +1397,7 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
+
 components:
   securitySchemes:
       BearerAuth: 
@@ -1123,6 +1478,32 @@ components:
         duration:
           $ref: '#/components/schemas/DurationFormat'
 
+    CreateMasterScheduleIntervalRequest:
+      type: object
+      required:
+        - day_of_week
+        - starts_at
+        - ends_at
+      properties:
+        day_of_week:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of week, where 1 is Monday and 7 is Sunday
+          examples:
+            - 1
+        starts_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval start time in HH:mm:ss format
+          examples:
+            - "09:00:00"
+        ends_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval end time in HH:mm:ss format
+          examples:
+            - "18:00:00"
 
     IdFormat:
       type: integer
@@ -1231,6 +1612,38 @@ components:
         duration:
           $ref: '#/components/schemas/DurationFormat'
 
+    MasterScheduleIntervalResponse:
+      type: object
+      required:
+        - id
+        - day_of_week
+        - starts_at
+        - ends_at
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        day_of_week:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of week, where 1 is Monday and 7 is Sunday
+          examples:
+            - 1
+            - 3
+            - 7
+        starts_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval start time in HH:mm:ss format
+          examples:
+            - "09:00:00"
+        ends_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval end time in HH:mm:ss format
+          examples:
+            - "18:00:00"
+
     UpdateClientRequest:
       type: object
       minProperties: 1
@@ -1274,6 +1687,30 @@ components:
           $ref: '#/components/schemas/PriceFormat'
         duration:
           $ref: '#/components/schemas/DurationFormat'
+
+    UpdateMasterScheduleIntervalRequest:
+      type: object
+      minProperties: 1
+      properties:
+        day_of_week:
+          type: integer
+          minimum: 1
+          maximum: 7
+          description: Day of week, where 1 is Monday and 7 is Sunday
+          examples:
+            - 1
+        starts_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval start time in HH:mm:ss format
+          examples:
+            - "09:00:00"
+        ends_at:
+          type: string
+          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
+          description: Interval end time in HH:mm:ss format
+          examples:
+            - "18:00:00"
 
     ErrorResponse:
       type: object
