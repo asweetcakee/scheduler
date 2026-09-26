@@ -1,4 +1,7 @@
-type PgError = { code?: string }
+type PgError = { 
+    code?: string,
+    constraint?: string
+}
 
 export const isUniqueViolation = (error: unknown): boolean => {
     return (error as PgError)?.code === '23505'
@@ -14,4 +17,8 @@ export const isCheckViolation = (error: unknown): boolean => {
 
 export const isExclusionViolation = (error: unknown): boolean => {
     return (error as PgError)?.code === '23P01'
+}
+
+export const getConstraintName = (error: unknown): string | undefined => {
+    return (error as PgError)?.constraint
 }

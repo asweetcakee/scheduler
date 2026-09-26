@@ -3,7 +3,7 @@ import { validate } from '../middlewares/validate.js'
 import { createMasterSchema, masterParamsSchema, updateMasterSchema } from '../schemas/masterSchema.js'
 import * as masterController from '../modules/masters/master.controller.js'
 import * as scheduleController from '../modules/masters/schedule/schedule.controller.js'
-import { createScheduleSchema } from '../schemas/scheduleSchema.js'
+import { createScheduleSchema, scheduleParamsSchema, updateScheduleParamsSchema, updateScheduleSchema } from '../schemas/scheduleSchema.js'
 const router = Router()
 
 router.get('/', masterController.getMasters)
@@ -12,6 +12,7 @@ router.get('/:id/schedule', validate({ params: masterParamsSchema }), scheduleCo
 router.post('/', validate({ body: createMasterSchema }), masterController.createMaster)
 router.post('/:id/schedule/intervals', validate({ params: masterParamsSchema, body: createScheduleSchema }), scheduleController.createInterval)
 router.patch('/:id', validate({ params: masterParamsSchema, body: updateMasterSchema }), masterController.updateMaster)
+router.patch('/:id/schedule/intervals/:intervalId', validate({ params: updateScheduleParamsSchema, body: updateScheduleSchema }), scheduleController.updateInterval)
 router.delete('/:id', validate({ params: masterParamsSchema }), masterController.removeMaster)
 
 export default router

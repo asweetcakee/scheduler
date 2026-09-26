@@ -26,3 +26,19 @@ export const createScheduleSchema = z.strictObject({
 export const scheduleParamsSchema = z.strictObject({
     id: idParam
 })
+
+export const updateScheduleParamsSchema = z.strictObject({
+    id: idParam,
+    intervalId: idParam
+})
+
+export const updateScheduleSchema = z.strictObject({
+    day_of_week: dayOfWeekField.optional(),
+    starts_at: timeSchema.optional(),
+    ends_at: timeSchema.optional()
+}).refine(
+    (data) => Object.keys(data).length > 0,
+    { error: 'At least one field must be provided' }
+)
+
+export type UpdateScheduleInput = z.infer<typeof updateScheduleSchema>
