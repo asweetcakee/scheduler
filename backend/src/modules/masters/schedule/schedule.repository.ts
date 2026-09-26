@@ -126,3 +126,13 @@ export const update = async(
         throw error
     }
 }
+
+export const remove = async(interval_id: number, master_id: number): Promise<boolean> => {
+    const result = await pool.query<ScheduleRow>(
+        `
+        DELETE FROM master_schedule_intervals
+        WHERE id = $1 AND master_id = $2
+        `, [interval_id, master_id]
+    )
+    return (result.rowCount ?? 0) > 0
+}

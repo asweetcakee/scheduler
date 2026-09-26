@@ -35,3 +35,7 @@ export const updateInterval = async(
 
     return scheduleRepository.update(interval_id, master_id, data)
 }
+
+export const removeInterval = async(interval_id: number, master_id: number) => {
+    return scheduleRepository.remove(interval_id, master_id)
+}

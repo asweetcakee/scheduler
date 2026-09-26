@@ -42,3 +42,10 @@ export const updateScheduleSchema = z.strictObject({
 )
 
 export type UpdateScheduleInput = z.infer<typeof updateScheduleSchema>
+
+export const deleteScheduleParamsSchema = z.strictObject({
+    id: idParam,
+    intervalId: idParam
+})
+
+export type DeleteScheduleParams = z.infer<typeof deleteScheduleParamsSchema>

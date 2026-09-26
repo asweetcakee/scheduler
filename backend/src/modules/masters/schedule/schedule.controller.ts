@@ -2,9 +2,8 @@ import type { NextFunction, Request, Response } from 'express'
 import { z } from 'zod/v4'
 import * as scheduleService from './schedule.service.js'
 import type { masterParamsSchema } from '../../../schemas/masterSchema.js'
-import type { createScheduleSchema, scheduleParamsSchema, UpdateScheduleInput, updateScheduleParamsSchema } from '../../../schemas/scheduleSchema.js'
+import type { createScheduleSchema, DeleteScheduleParams, UpdateScheduleInput, updateScheduleParamsSchema } from '../../../schemas/scheduleSchema.js'
 import { toScheduleResponse } from './schedule.mapper.js'
-import { error } from 'node:console'
 
 type MasterParams = z.infer<typeof masterParamsSchema>
 type UpdateScheduleParams = z.infer<typeof updateScheduleParamsSchema>
@@ -67,6 +66,28 @@ export const updateInterval = async(
             return
         }
         res.status(200).json(toScheduleResponse(interval))
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const removeInterval = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+        const { id: master_id, intervalId } = req.validated?.params as DeleteScheduleParams
+        const interval = await scheduleService.removeInterval(intervalId, master_id)
+        if (!interval) {
+            res.status(404).json({ error: 'Interval not Found' })
+            return
+        }
+        res.status(204).send()
     } catch (error) {
         next(error)
     }
