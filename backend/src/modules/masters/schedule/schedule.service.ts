@@ -12,3 +12,7 @@ export const createInterval = async(
     }
     return scheduleRepository.create(master_id, day_of_week, starts_at, ends_at)
 }
+
+export const findAllIntervals = async(master_id: number) => {
+    return scheduleRepository.findIntervals(master_id)
+}

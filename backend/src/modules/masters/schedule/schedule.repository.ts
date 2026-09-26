@@ -3,7 +3,7 @@ import { ConflictError } from '../../../errors/ConflictError.js'
 import { isCheckViolation, isExclusionViolation } from '../../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
 
-type ScheduleRow = {
+export type ScheduleRow = {
     id: number,
     master_id: number,
     day_of_week: number,
@@ -39,4 +39,15 @@ export const create = async(
         }
         throw error
     }
+}
+
+export const findIntervals = async(master_id: number): Promise<ScheduleRow[]> => {
+    const result = await pool.query<ScheduleRow>(
+        `
+        SELECT id, day_of_week, starts_at, ends_at
+        FROM master_schedule_intervals
+        WHERE master_id = $1
+        `, [master_id]
+    )
+    return result.rows
 }
