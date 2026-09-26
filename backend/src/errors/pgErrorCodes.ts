@@ -11,3 +11,7 @@ export const isInvalidTextRepresentation = (error: unknown): boolean => {
 export const isCheckViolation = (error: unknown): boolean => {
     return (error as PgError)?.code === '23514'
 }
+
+export const isExclusionViolation = (error: unknown): boolean => {
+    return (error as PgError)?.code === '23P01'
+}
