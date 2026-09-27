@@ -1,15 +1,8 @@
+import type { Schedule } from '../types/schedule'
 import { ApiError } from './apiError'
 import { handleResponse } from './handleResponse'
 
 const baseUrl = '/api/masters'
-
-type Schedule = {
-    id: number,
-    master_id: number,
-    day_of_week: number,
-    starts_at: string,
-    ends_at: string
-}
 
 type CreateScheduleBody = {
     day_of_week: number,

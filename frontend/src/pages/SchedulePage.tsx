@@ -1,4 +1,12 @@
+import { MasterScheduleRow } from '../components/masters/schedule/MasterScheduleRow'
+import { useMasters } from '../hooks/masters'
+
 export const SchedulePage = () => {
+    const { data: masters, isLoading: isMastersLoading, error: mastersError } = useMasters()
+    
+    if (isMastersLoading) return <p>Loading masters...</p>
+    if (mastersError) return <p>Error: {mastersError.message}</p>
+
     return(
         <section className='flex flex-col w-full'>
             <div className='flex justify-start items-center mx-6 mt-6 gap-2'>
@@ -35,6 +43,12 @@ export const SchedulePage = () => {
                         </tr>
                     </thead>
                     <tbody>
+                        {masters?.map(master => (
+                            <MasterScheduleRow 
+                                key={master.id}
+                                master={master}
+                            />
+                        ))}                    
                     </tbody>
                 </table>
             </div>
