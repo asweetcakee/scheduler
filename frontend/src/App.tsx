@@ -3,6 +3,7 @@ import { AdminLayout } from './layout/AdminLayout'
 import { ClientPage } from './pages/ClientsPage'
 import { MastersPage } from './pages/MastersPage'
 import { ServicesPage } from './pages/ServicesPage'
+import { SchedulePage } from './pages/SchedulePage'
 
 const router = createBrowserRouter([
   {
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
       { path: 'clients', element: <ClientPage /> },
       { path: 'masters', element: <MastersPage /> },
       { path: 'services', element: <ServicesPage /> },
+      { path: 'schedule', element: <SchedulePage /> },
     ]
   }
 ])

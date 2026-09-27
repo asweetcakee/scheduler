@@ -18,6 +18,12 @@ export const Sidebar = () => {
                         Мастера
                     </Link>
                     <Link 
+                        to='/schedule' 
+                        className='block w-full bg-primary hover:bg-primary-hover text-text-alt px-4 py-2 border-0 rounded-lg transition-colors'
+                    >
+                        Расписание
+                    </Link>
+                    <Link 
                         to='/services' 
                         className='block w-full bg-primary hover:bg-primary-hover text-text-alt px-4 py-2 border-0 rounded-lg transition-colors'
                     >
