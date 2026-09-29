@@ -1,0 +1,13 @@
+export type DayNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7
+
+export const DAYS: DayNumber[] = [1, 2, 3, 4, 5, 6, 7]
+
+export const dayLabels: Record<DayNumber, string> = {
+    1: 'Понедельник',
+    2: 'Вторник',
+    3: 'Среда',
+    4: 'Четверг',
+    5: 'Пятница',
+    6: 'Суббота',
+    7: 'Воскресенье'
+}

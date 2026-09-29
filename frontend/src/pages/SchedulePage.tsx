@@ -1,11 +1,32 @@
+import { useMemo, useState } from 'react'
 import { MasterScheduleRow } from '../components/masters/schedule/MasterScheduleRow'
 import { useMasters } from '../hooks/masters'
+import type { SelectedCell } from '../types/schedule'
+import { ScheduleFormModal } from '../components/masters/schedule/ScheduleFormModal'
 
 export const SchedulePage = () => {
     const { data: masters, isLoading: isMastersLoading, error: mastersError } = useMasters()
+    const [selectedCell, setSelectedCell] = useState<SelectedCell>(null)
+    const [nameSearch, setNameSearch] = useState<string>('')
     
+    const filteredMasters= useMemo(() => {
+        if (!masters) return []
+        const query = nameSearch.trim().toLowerCase()
+        return masters.filter(master => 
+            master.name.toLowerCase().includes(query)
+        )
+    }, [nameSearch, masters])
+
     if (isMastersLoading) return <p>Loading masters...</p>
     if (mastersError) return <p>Error: {mastersError.message}</p>
+
+    const onSelectedDay = (selected: SelectedCell) => {
+        setSelectedCell(selected)
+    }
+
+    const onClose = () => {
+        setSelectedCell(null)
+    }
 
     return(
         <section className='flex flex-col w-full'>
@@ -15,6 +36,8 @@ export const SchedulePage = () => {
                         type='text'
                         placeholder='Поиск мастера...'
                         className='w-full outline-none'
+                        value={nameSearch}
+                        onChange={(e) => setNameSearch(e.target.value)}
                     />
                 </div>
             </div>
@@ -43,15 +66,24 @@ export const SchedulePage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {masters?.map(master => (
+                        {filteredMasters.map(master => (
                             <MasterScheduleRow 
                                 key={master.id}
                                 master={master}
+                                onSelectedDay={onSelectedDay}
                             />
                         ))}                    
                     </tbody>
                 </table>
             </div>
+            {selectedCell !== null && (
+                <ScheduleFormModal
+                    master_id={selectedCell.master.id}
+                    master_name={selectedCell.master.name}
+                    day={selectedCell.day}
+                    onClose={onClose}
+                />
+            )}
         </section>
     )
 }
