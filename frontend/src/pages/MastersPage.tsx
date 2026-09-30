@@ -16,8 +16,9 @@ export const MastersPage = () => {
 
     const filteredMasters = useMemo(() => {
         if (!masters) return []
+        const nameQuery = nameSearch.trim().toLocaleLowerCase()
         return masters.filter(master => 
-            (nameSearch === '' || master.name.toLowerCase().includes(nameSearch.toLowerCase()))
+            (nameSearch === '' || master.name.toLowerCase().includes(nameQuery))
             && (phoneSearch === '' || master.phone.includes(phoneSearch))
         )
         
@@ -60,7 +61,7 @@ export const MastersPage = () => {
                         className='outline-none'
                         value={nameSearch ?? ''}
                         onChange={(e) => {
-                            setNameSearch(e.target.value.trim())
+                            setNameSearch(e.target.value)
                         }}
                     />
                 </div>

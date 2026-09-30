@@ -13,8 +13,9 @@ export const ServicesPage = () => {
 
     const filteredServices = useMemo(() => {
         if (!services) return []
+        const query = nameSearch.trim().toLowerCase()
         return services.filter(service => 
-            service.name.toLowerCase().includes(nameSearch.toLowerCase())
+            service.name.toLowerCase().includes(query)
         )
     }, [nameSearch, services])
     
@@ -48,7 +49,7 @@ export const ServicesPage = () => {
                         placeholder='Поиск по названию'
                         className='outline-none'
                         value={nameSearch}
-                        onChange={(e) => setNameSearch(e.target.value.trim())}
+                        onChange={(e) => setNameSearch(e.target.value)}
                     />
                 </div>
                 <button 
