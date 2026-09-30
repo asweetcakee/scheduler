@@ -57,49 +57,55 @@ export const IntervalRow = ({ master_id, interval, day, onCreated, onCancel }: I
 
     return(
         <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-1'>
-            <div className='flex items-center gap-2'>
-                <div>
-                    <input 
-                        {...register('starts_at')}
-                        type='time'
-                        className='px-2 py-1 rounded-lg bg-page outline-none'
-                    />
-                    {errors.starts_at && <span className='text-danger text-sm'>{errors.starts_at.message}</span>}
+            <div className='flex flex-wrap items-start gap-2'>
+                <div className='flex items-start gap-2'>
+                    <div className='flex flex-col'>
+                        <input 
+                            {...register('starts_at')}
+                            type='time'
+                            className='px-2 py-1 rounded-lg bg-page outline-none'
+                        />
+                        {errors.starts_at && <span className='text-danger text-sm'>{errors.starts_at.message}</span>}
+                    </div>
+                    <span className='py-1'>–</span>
+                    <div className='flex flex-col'>
+                        <input 
+                            {...register('ends_at')}
+                            type='time'
+                            className='px-2 py-1 rounded-lg bg-page outline-none'
+                        />
+                        {errors.ends_at && <span className='text-danger text-sm'>{errors.ends_at.message}</span>}
+                    </div>
                 </div>
-                <span>–</span>
-                <div>
-                    <input 
-                        {...register('ends_at')}
-                        type='time'
-                        className='px-2 py-1 rounded-lg bg-page outline-none'
-                    />
-                    {errors.ends_at && <span className='text-danger text-sm'>{errors.ends_at.message}</span>}
-                </div>
-                <button
-                    type='submit'
-                    disabled={!isDirty || isPending}
-                    className='px-2 py-1 bg-accent-purple hover:bg-accent-purple-hover text-text-alt text-sm rounded-lg transition-colors disabled:opacity-50'
-                >
-                    {isPending ? 'Сохранение...' : 'Сохранить'}
-                </button>
                 
-                {interval ? (
+                <div className='flex items-start gap-2'>
                     <button
-                        type='button'
-                        onClick={handleDelete}
-                        disabled={removeMutation.isPending}
-                        className='px-2 py-1 bg-danger hover:bg-danger-hover text-text-alt text-sm rounded-lg transition-colors'>
-                        Удалить
+                        type='submit'
+                        disabled={!isDirty || isPending}
+                        className='px-2 py-1 bg-accent-purple hover:bg-accent-purple-hover text-text-alt text-sm rounded-lg transition-colors disabled:opacity-50'
+                    >
+                        {isPending ? 'Сохранение...' : 'Сохранить'}
                     </button>
-                ) : (
-                    <button 
-                        type='button'
-                        onClick={onCancel}
-                        className='px-2 py-1 text-sm rounded-lg bg-page hover:bg-status-pending hover:text-text-alt transition-colors'>
-                        Отмена
-                    </button>
-                )}
+                    
+                    {interval ? (
+                        <button
+                            type='button'
+                            onClick={handleDelete}
+                            disabled={removeMutation.isPending}
+                            className='px-2 py-1 bg-danger hover:bg-danger-hover text-text-alt text-sm rounded-lg transition-colors'>
+                            Удалить
+                        </button>
+                    ) : (
+                        <button 
+                            type='button'
+                            onClick={onCancel}
+                            className='px-2 py-1 text-sm rounded-lg bg-page hover:bg-status-pending hover:text-text-alt transition-colors'>
+                            Отмена
+                        </button>
+                    )}
+                </div>
             </div>
+            
             {createMutation.error && (
                 <span className='text-danger text-sm'>
                     {createMutation.error.message}
