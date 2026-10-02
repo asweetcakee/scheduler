@@ -705,7 +705,7 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
-  /masters/{id}/schedule:
+  /masters/{id}/schedule/intervals:
     get:
       tags:
         - Masters
@@ -786,7 +786,6 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
-  /masters/{id}/schedule/intervals:
     post:
       tags:
         - Masters

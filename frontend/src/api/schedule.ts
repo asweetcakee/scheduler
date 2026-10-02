@@ -5,7 +5,7 @@ import { handleResponse } from './handleResponse'
 const baseUrl = '/api/masters'
 
 export const getIntervals = async(master_id: number): Promise<Interval[]> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule`)
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals`)
     return handleResponse<Interval[]>(response)
 }
 
