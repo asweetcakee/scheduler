@@ -705,6 +705,64 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
+  /masters/{id}/schedule:
+    get:
+      tags:
+        - Masters
+      summary: Get master schedule for a date
+      operationId: getMasterScheduleForDate
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: date
+          in: query
+          required: true
+          description: Calendar date in YYYY-MM-DD format
+          schema:
+            $ref: '#/components/schemas/DateFormat'
+      responses:
+        '200':
+          description: Schedule for the specified date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleForDateResponse'
+        '400':
+          description: Invalid master ID or date format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
   /masters/{id}/schedule/intervals:
     get:
       tags:
@@ -1056,6 +1114,321 @@ paths:
                   summary: Internal error
                   value:
                     error: "An unexpected error occurred"
+  /masters/{id}/schedule/versions:
+    get:
+      tags:
+        - Masters
+      summary: List schedule versions
+      operationId: getMasterScheduleVersions
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: List of schedule versions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MasterScheduleVersionSummaryResponse'
+        '400':
+          description: Invalid master ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      tags:
+        - Masters
+      summary: Create future schedule version
+      operationId: createMasterScheduleVersion
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMasterScheduleVersionRequest'
+      responses:
+        '201':
+          description: Schedule version created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleVersionResponse'
+        '400':
+          description: Invalid request payload or parameter format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate effective date or overlapping intervals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /masters/{id}/schedule/versions/{versionId}:
+    get:
+      tags:
+        - Masters
+      summary: Get schedule version
+      operationId: getMasterScheduleVersion
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: versionId
+          in: path
+          required: true
+          description: Schedule version identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: Schedule version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleVersionResponse'
+        '400':
+          description: Invalid master ID or schedule version ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master or schedule version not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Masters
+      summary: Replace future schedule version
+      operationId: replaceMasterScheduleVersion
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: versionId
+          in: path
+          required: true
+          description: Unique identifier of the schedule version to replace
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplaceMasterScheduleVersionRequest'
+      responses:
+        '200':
+          description: Schedule version replaced successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MasterScheduleVersionResponse'
+        '400':
+          description: Invalid request payload or parameter format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master or schedule version not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Schedule version cannot be modified or conflicts with another version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Business rule violation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Masters
+      summary: Delete future schedule version
+      operationId: removeMasterScheduleVersion
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Master identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: versionId
+          in: path
+          required: true
+          description: Unique identifier of the schedule version to delete
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: Schedule version deleted successfully
+        '400':
+          description: Invalid request payload or parameter format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Access forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Master or schedule version not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Attempting to delete an active or historical schedule version
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Unexpected server or database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /services:
     post:
@@ -1491,17 +1864,23 @@ components:
           examples:
             - 1
         starts_at:
-          type: string
-          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
-          description: Interval start time in HH:mm:ss format
-          examples:
-            - "09:00:00"
+          $ref: '#/components/schemas/ScheduleTimeFormat'
         ends_at:
-          type: string
-          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
-          description: Interval end time in HH:mm:ss format
-          examples:
-            - "18:00:00"
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+
+    CreateMasterScheduleVersionRequest:
+      type: object
+      required:
+        - effective_from
+        - intervals
+      properties:
+        effective_from:
+          $ref: '#/components/schemas/DateFormat'
+        intervals:
+          type: array
+          description: List of schedule working intervals for the version
+          items:
+            $ref: '#/components/schemas/CreateMasterScheduleIntervalRequest'
 
     IdFormat:
       type: integer
@@ -1550,6 +1929,18 @@ components:
       description: Service duration in seconds
       examples:
         - 3600
+
+    DateFormat:
+      type: string
+      pattern: '^\d{4}-\d{2}-\d{2}$'
+      description: Calendar date in YYYY-MM-DD format
+      example: "2026-10-20"
+
+    ScheduleTimeFormat:
+      type: string
+      pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+      description: Time in HH:mm format
+      example: "10:00"
 
     ClientResponse:
       type: object
@@ -1631,17 +2022,57 @@ components:
             - 3
             - 7
         starts_at:
-          type: string
-          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
-          description: Interval start time in HH:mm:ss format
-          examples:
-            - "09:00:00"
+          $ref: '#/components/schemas/ScheduleTimeFormat'
         ends_at:
-          type: string
-          pattern: '^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$'
-          description: Interval end time in HH:mm:ss format
-          examples:
-            - "18:00:00"
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+
+    MasterScheduleVersionSummaryResponse:
+      type: object
+      required:
+        - id
+        - effective_from
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        effective_from:
+          $ref: '#/components/schemas/DateFormat'
+
+    MasterScheduleVersionResponse:
+      type: object
+      required:
+        - id
+        - effective_from
+        - intervals
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        effective_from:
+          $ref: '#/components/schemas/DateFormat'
+        intervals:
+          type: array
+          description: List of schedule working intervals for the version
+          items:
+            $ref: '#/components/schemas/MasterScheduleIntervalResponse'
+    
+    MasterScheduleForDateResponse:
+      type: object
+      required:
+        - version
+        - intervals
+      properties:
+        version:
+          type: [object, 'null']
+          description: Object containing version metadata, or null if no applicable version exists
+          properties:
+            id:
+              $ref: '#/components/schemas/IdFormat'
+            effective_from:
+              $ref: '#/components/schemas/DateFormat'
+        intervals:
+          type: array
+          description: List of schedule working intervals for the active version. Empty array when version is null
+          items:
+            $ref: '#/components/schemas/MasterScheduleIntervalResponse'
 
     UpdateClientRequest:
       type: object
@@ -1710,6 +2141,20 @@ components:
           description: Interval end time in HH:mm:ss format
           examples:
             - "18:00:00"
+
+    ReplaceMasterScheduleVersionRequest:
+      type: object
+      required:
+        - effective_from
+        - intervals
+      properties:
+        effective_from:
+          $ref: '#/components/schemas/DateFormat'
+        intervals:
+          type: array
+          description: Complete list of schedule working intervals. Replaces all existing intervals for this version
+          items:
+            $ref: '#/components/schemas/CreateMasterScheduleIntervalRequest'
 
     ErrorResponse:
       type: object
