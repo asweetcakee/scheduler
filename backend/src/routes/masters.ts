@@ -8,7 +8,7 @@ const router = Router()
 
 router.get('/', masterController.getMasters)
 router.get('/:id', validate({ params: masterParamsSchema }), masterController.getMasterById)
-router.get('/:id/schedule', validate({ params: masterParamsSchema }), scheduleController.getIntervals)
+router.get('/:id/schedule/intervals', validate({ params: masterParamsSchema }), scheduleController.getIntervals)
 router.post('/', validate({ body: createMasterSchema }), masterController.createMaster)
 router.post('/:id/schedule/intervals', validate({ params: masterParamsSchema, body: createScheduleSchema }), scheduleController.createInterval)
 router.patch('/:id', validate({ params: masterParamsSchema, body: updateMasterSchema }), masterController.updateMaster)
