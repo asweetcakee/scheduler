@@ -1,6 +1,14 @@
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
+import type { ID, ISODate, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
 import * as scheduleRepository from './schedule.repository.js'
+import { findMasterById } from '../master.repository.js'
+import { NotFoundError } from '../../../errors/NotFoundError.js'
+import { toIntervalResponse, toVersionResponse, type ScheduleIntervalResponse, type ScheduleVersionResponse } from './schedule.mapper.js'
+
+type ScheduleResponse = {
+    version: ScheduleVersionResponse | null
+    intervals: ScheduleIntervalResponse[]
+}
 
 export const createInterval = async(
     master_id: number,
@@ -14,8 +22,23 @@ export const createInterval = async(
     return scheduleRepository.create(master_id, day_of_week, starts_at, ends_at)
 }
 
-export const findAllIntervals = async(master_id: number) => {
-    return scheduleRepository.findIntervals(master_id)
+export const findScheduleForDate = async(
+    master_id: ID,
+    date: ISODate
+): Promise<ScheduleResponse> => {
+    const master = await findMasterById(master_id)
+    if (!master) {
+        throw new NotFoundError(`Master with id ${master_id} not found`)
+    }
+    
+    const version = await scheduleRepository.findVersionForDate(master_id, date)
+    if (!version) return { version: null, intervals: [] }
+    
+    const intervals = await scheduleRepository.findIntervalsByVersionId(version.id)
+    return {
+        version: toVersionResponse(version),
+        intervals: intervals.map(interval => toIntervalResponse(interval))
+    }
 }
 
 export const updateInterval = async(

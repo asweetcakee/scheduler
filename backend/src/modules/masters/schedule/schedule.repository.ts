@@ -2,14 +2,18 @@ import { pool } from '../../../db/pool.js'
 import { ConflictError } from '../../../errors/ConflictError.js'
 import { getConstraintName, isCheckViolation, isExclusionViolation } from '../../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
+import type { ID, ISODate, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
 
-export type IntervalRow = {
-    id: number,
-    master_id: number,
+export type ScheduleIntervalRow = {
+    id: ID,
     day_of_week: number,
     starts_at: string,
     ends_at: string
+}
+
+export type ScheduleVersionRow = {
+    id: ID,
+    effective_from: ISODate
 }
 
 export const create = async(
@@ -49,26 +53,30 @@ export const create = async(
     }
 }
 
-export const findIntervals = async(master_id: number): Promise<IntervalRow[]> => {
-    const result = await pool.query<IntervalRow>(
+export const findVersionForDate = async (master_id: ID, date: ISODate): Promise<ScheduleVersionRow | null> => {
+    const result = await pool.query<ScheduleVersionRow>(
         `
-        SELECT id, day_of_week, starts_at, ends_at
-        FROM master_schedule_intervals
-        WHERE master_id = $1
-        `, [master_id]
+        SELECT id, effective_from::text AS effective_from
+        FROM master_schedule_versions
+        WHERE master_id = $1 AND effective_from <= $2
+        ORDER BY effective_from DESC
+        LIMIT 1
+        `, [master_id, date]
     )
-    return result.rows
+
+    return result.rows[0] ?? null
 }
 
-export const findIntervalById = async(interval_id: number, master_id: number): Promise<IntervalRow | null> => {
-    const result = await pool.query<IntervalRow>(
+export const findIntervalsByVersionId = async(schedule_version_id: ID): Promise<ScheduleIntervalRow[]> => {
+    const result = await pool.query<ScheduleIntervalRow>(
         `
         SELECT id, day_of_week, starts_at, ends_at
         FROM master_schedule_intervals
-        WHERE id = $1 AND master_id = $2
-        `, [interval_id, master_id]
+        WHERE schedule_version_id = $1
+        ORDER BY day_of_week, starts_at
+        `, [schedule_version_id]
     )
-    return result.rows[0] ?? null
+    return result.rows
 }
 
 export const update = async(

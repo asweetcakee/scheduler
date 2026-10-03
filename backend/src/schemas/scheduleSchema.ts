@@ -5,6 +5,11 @@ const idParam = z.coerce
     .int()
     .positive({ error: 'ID must be a positive integer' })
 
+export type ID = z.output<typeof idParam>
+
+const isoDateSchema = z.iso.date({ error: 'Date must follow YYYY-MM-DD format' })
+export type ISODate = z.infer<typeof isoDateSchema>
+
 const dayOfWeekField = z
     .number()
     .int('День недели должен быть целым числом')
@@ -16,6 +21,10 @@ const timeSchema = z.string()
         /^([01]\d|2[0-3]):[0-5]\d$/,
         'Invalid format'
     )
+
+export const scheduleQuerySchema = z.strictObject({
+    date: isoDateSchema
+})
 
 export const createIntervalSchema = z.strictObject({
     day_of_week: dayOfWeekField,
