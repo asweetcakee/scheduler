@@ -1,5 +1,5 @@
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { UpdateScheduleInput } from '../../../schemas/scheduleSchema.js'
+import type { UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
 import * as scheduleRepository from './schedule.repository.js'
 
 export const createInterval = async(
@@ -21,7 +21,7 @@ export const findAllIntervals = async(master_id: number) => {
 export const updateInterval = async(
     interval_id: number,
     master_id: number,
-    data: UpdateScheduleInput
+    data: UpdateIntervalInput
 ) => {
     const existing = await scheduleRepository.findIntervalById(interval_id, master_id)
     if (!existing) return null

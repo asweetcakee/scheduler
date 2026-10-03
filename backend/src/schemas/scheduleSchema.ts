@@ -17,22 +17,22 @@ const timeSchema = z.string()
         'Invalid format'
     )
 
-export const createScheduleSchema = z.strictObject({
+export const createIntervalSchema = z.strictObject({
     day_of_week: dayOfWeekField,
     starts_at: timeSchema,
     ends_at: timeSchema
 })
 
-export const scheduleParamsSchema = z.strictObject({
+export const intervalParamsSchema = z.strictObject({
     id: idParam
 })
 
-export const updateScheduleParamsSchema = z.strictObject({
+export const updateIntervalParamsSchema = z.strictObject({
     id: idParam,
     intervalId: idParam
 })
 
-export const updateScheduleSchema = z.strictObject({
+export const updateIntervalSchema = z.strictObject({
     day_of_week: dayOfWeekField.optional(),
     starts_at: timeSchema.optional(),
     ends_at: timeSchema.optional()
@@ -41,11 +41,11 @@ export const updateScheduleSchema = z.strictObject({
     { error: 'At least one field must be provided' }
 )
 
-export type UpdateScheduleInput = z.infer<typeof updateScheduleSchema>
+export type UpdateIntervalInput = z.infer<typeof updateIntervalSchema>
 
-export const deleteScheduleParamsSchema = z.strictObject({
+export const deleteIntervalParamsSchema = z.strictObject({
     id: idParam,
     intervalId: idParam
 })
 
-export type DeleteScheduleParams = z.infer<typeof deleteScheduleParamsSchema>
+export type DeleteIntervalParams = z.infer<typeof deleteIntervalParamsSchema>

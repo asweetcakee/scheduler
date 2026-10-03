@@ -2,12 +2,12 @@ import type { NextFunction, Request, Response } from 'express'
 import { z } from 'zod/v4'
 import * as scheduleService from './schedule.service.js'
 import type { masterParamsSchema } from '../../../schemas/masterSchema.js'
-import type { createScheduleSchema, DeleteScheduleParams, UpdateScheduleInput, updateScheduleParamsSchema } from '../../../schemas/scheduleSchema.js'
-import { toScheduleResponse } from './schedule.mapper.js'
+import type { createIntervalSchema, DeleteIntervalParams, UpdateIntervalInput, updateIntervalParamsSchema } from '../../../schemas/scheduleSchema.js'
+import { toIntervalResponse } from './schedule.mapper.js'
 
 type MasterParams = z.infer<typeof masterParamsSchema>
-type UpdateScheduleParams = z.infer<typeof updateScheduleParamsSchema>
-type CreateScheduleBody = z.infer<typeof createScheduleSchema>
+type UpdateScheduleParams = z.infer<typeof updateIntervalParamsSchema>
+type CreateScheduleBody = z.infer<typeof createIntervalSchema>
 
 export const createInterval = async(
     req: Request,
@@ -23,7 +23,7 @@ export const createInterval = async(
         const { id: master_id } = req.validated?.params as MasterParams
         const { day_of_week, starts_at, ends_at } = req.validated?.body as CreateScheduleBody
         const interval = await scheduleService.createInterval(master_id, day_of_week, starts_at, ends_at)
-        res.status(201).json(toScheduleResponse(interval))
+        res.status(201).json(toIntervalResponse(interval))
     } catch (error) {
         next(error)
     }
@@ -42,7 +42,7 @@ export const getIntervals = async(
 
         const { id: master_id } = req.validated?.params as MasterParams
         const intervals = await scheduleService.findAllIntervals(master_id)
-        res.status(200).json(intervals.map(toScheduleResponse))
+        res.status(200).json(intervals.map(toIntervalResponse))
     } catch (error) {
         next(error)
     }
@@ -59,13 +59,13 @@ export const updateInterval = async(
             return
         }
         const { id: master_id, intervalId } = req.validated?.params as UpdateScheduleParams
-        const data = req.validated?.body as UpdateScheduleInput
+        const data = req.validated?.body as UpdateIntervalInput
         const interval = await scheduleService.updateInterval(intervalId, master_id, data)
         if (!interval) {
             res.status(404).json({ error: 'Interval not Found' })
             return
         }
-        res.status(200).json(toScheduleResponse(interval))
+        res.status(200).json(toIntervalResponse(interval))
     } catch (error) {
         next(error)
     }
@@ -81,7 +81,7 @@ export const removeInterval = async(
             res.status(500).json({ error: 'Missing validated params' })
             return
         }
-        const { id: master_id, intervalId } = req.validated?.params as DeleteScheduleParams
+        const { id: master_id, intervalId } = req.validated?.params as DeleteIntervalParams
         const interval = await scheduleService.removeInterval(intervalId, master_id)
         if (!interval) {
             res.status(404).json({ error: 'Interval not Found' })

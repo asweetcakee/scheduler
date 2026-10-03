@@ -2,14 +2,14 @@ import { pool } from '../../../db/pool.js'
 import { ConflictError } from '../../../errors/ConflictError.js'
 import { getConstraintName, isCheckViolation, isExclusionViolation } from '../../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { UpdateScheduleInput } from '../../../schemas/scheduleSchema.js'
+import type { UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
 
-export type ScheduleRow = {
+export type IntervalRow = {
     id: number,
     master_id: number,
     day_of_week: number,
     starts_at: string,
-    ends_at: string  
+    ends_at: string
 }
 
 export const create = async(
@@ -17,9 +17,9 @@ export const create = async(
     day_of_week: number,
     starts_at: string,
     ends_at: string    
-): Promise<ScheduleRow> => {
+): Promise<IntervalRow> => {
     try {
-        const result = await pool.query<ScheduleRow>(
+        const result = await pool.query<IntervalRow>(
             `
             INSERT INTO master_schedule_intervals (master_id, day_of_week, starts_at, ends_at)
             VALUES ($1, $2, $3, $4)
@@ -49,8 +49,8 @@ export const create = async(
     }
 }
 
-export const findIntervals = async(master_id: number): Promise<ScheduleRow[]> => {
-    const result = await pool.query<ScheduleRow>(
+export const findIntervals = async(master_id: number): Promise<IntervalRow[]> => {
+    const result = await pool.query<IntervalRow>(
         `
         SELECT id, day_of_week, starts_at, ends_at
         FROM master_schedule_intervals
@@ -60,8 +60,8 @@ export const findIntervals = async(master_id: number): Promise<ScheduleRow[]> =>
     return result.rows
 }
 
-export const findIntervalById = async(interval_id: number, master_id: number): Promise<ScheduleRow | null> => {
-    const result = await pool.query<ScheduleRow>(
+export const findIntervalById = async(interval_id: number, master_id: number): Promise<IntervalRow | null> => {
+    const result = await pool.query<IntervalRow>(
         `
         SELECT id, day_of_week, starts_at, ends_at
         FROM master_schedule_intervals
@@ -74,8 +74,8 @@ export const findIntervalById = async(interval_id: number, master_id: number): P
 export const update = async(
     interval_id: number,
     master_id: number,
-    data: UpdateScheduleInput  
-): Promise<ScheduleRow | null> => {
+    data: UpdateIntervalInput  
+): Promise<IntervalRow | null> => {
     try {
         const fields: string[] = []
         const values: unknown[] = []
@@ -100,7 +100,7 @@ export const update = async(
 
         const idsCondition = `id = $${values.length - 1} AND master_id = $${values.length}`
 
-        const result = await pool.query<ScheduleRow>(
+        const result = await pool.query<IntervalRow>(
             `
             UPDATE master_schedule_intervals
             SET ${fields.join(', ')}
@@ -128,7 +128,7 @@ export const update = async(
 }
 
 export const remove = async(interval_id: number, master_id: number): Promise<boolean> => {
-    const result = await pool.query<ScheduleRow>(
+    const result = await pool.query<IntervalRow>(
         `
         DELETE FROM master_schedule_intervals
         WHERE id = $1 AND master_id = $2
