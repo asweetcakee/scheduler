@@ -2,11 +2,12 @@ import type { NextFunction, Request, Response } from 'express'
 import { z } from 'zod/v4'
 import * as scheduleService from './schedule.service.js'
 import type { masterParamsSchema } from '../../../schemas/masterSchema.js'
-import type { createIntervalSchema, DeleteIntervalParams, scheduleQuerySchema, UpdateIntervalInput, updateIntervalParamsSchema } from '../../../schemas/scheduleSchema.js'
+import type { createIntervalSchema, DeleteIntervalParams, getVersionParamsSchema, scheduleQuerySchema, UpdateIntervalInput, updateIntervalParamsSchema } from '../../../schemas/scheduleSchema.js'
 import { toIntervalResponse } from './schedule.mapper.js'
 
 type MasterParams = z.infer<typeof masterParamsSchema>
 type ScheduleQuery = z.infer<typeof scheduleQuerySchema>
+type ScheduleParams = z.infer<typeof getVersionParamsSchema>
 type UpdateScheduleParams = z.infer<typeof updateIntervalParamsSchema>
 type CreateScheduleBody = z.infer<typeof createIntervalSchema>
 
@@ -63,6 +64,25 @@ export const getVersionsForMaster = async(
 
         const { id } = req.validated.params as MasterParams
         const schedules = await scheduleService.findVersionsForMaster(id)
+        res.status(200).json(schedules)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getScheduleByVersionId = async(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+
+        const { id, versionId } = req.validated.params as ScheduleParams
+        const schedules = await scheduleService.findScheduleByVersionId(id, versionId)
         res.status(200).json(schedules)
     } catch (error) {
         next(error)

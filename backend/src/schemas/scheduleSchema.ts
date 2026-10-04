@@ -26,6 +26,11 @@ export const scheduleQuerySchema = z.strictObject({
     date: isoDateSchema
 })
 
+export const getVersionParamsSchema = z.strictObject({
+    id: idParam,
+    versionId: idParam
+})
+
 export const createIntervalSchema = z.strictObject({
     day_of_week: dayOfWeekField,
     starts_at: timeSchema,
