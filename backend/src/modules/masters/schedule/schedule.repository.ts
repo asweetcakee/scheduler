@@ -53,7 +53,7 @@ export const create = async(
     }
 }
 
-export const findVersionForDate = async (master_id: ID, date: ISODate): Promise<ScheduleVersionRow | null> => {
+export const findVersionForDate = async(master_id: ID, date: ISODate): Promise<ScheduleVersionRow | null> => {
     const result = await pool.query<ScheduleVersionRow>(
         `
         SELECT id, effective_from::text AS effective_from
@@ -75,6 +75,18 @@ export const findIntervalsByVersionId = async(schedule_version_id: ID): Promise<
         WHERE schedule_version_id = $1
         ORDER BY day_of_week, starts_at
         `, [schedule_version_id]
+    )
+    return result.rows
+}
+
+export const findVersionsForMaster = async(master_id: ID): Promise<ScheduleVersionRow[]> => {
+    const result = await pool.query<ScheduleVersionRow>(
+        `
+        SELECT id, effective_from::text AS effective_from
+        FROM master_schedule_versions
+        WHERE master_id = $1
+        ORDER BY effective_from DESC
+        `, [master_id]
     )
     return result.rows
 }

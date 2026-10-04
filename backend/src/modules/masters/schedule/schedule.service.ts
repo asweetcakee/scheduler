@@ -41,6 +41,16 @@ export const findScheduleForDate = async(
     }
 }
 
+export const findVersionsForMaster = async(master_id: ID): Promise<ScheduleVersionResponse[]> => {
+    const master = await findMasterById(master_id)
+    if (!master) {
+        throw new NotFoundError(`Master with id ${master_id} not found`)
+    }
+
+    const versions = await scheduleRepository.findVersionsForMaster(master_id)
+    return versions.map(version => toVersionResponse(version))
+}
+
 export const updateInterval = async(
     interval_id: number,
     master_id: number,
