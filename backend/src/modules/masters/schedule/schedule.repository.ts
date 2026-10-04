@@ -1,12 +1,13 @@
+import type { PoolClient } from 'pg'
 import { pool } from '../../../db/pool.js'
 import { ConflictError } from '../../../errors/ConflictError.js'
-import { getConstraintName, isCheckViolation, isExclusionViolation } from '../../../errors/pgErrorCodes.js'
+import { getConstraintName, isCheckViolation, isExclusionViolation, isUniqueViolation } from '../../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { ID, ISODate, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
+import type { CreateIntervalInput, DayOfWeek, ID, ISODate, TimeFormat, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
 
 export type ScheduleIntervalRow = {
     id: ID,
-    day_of_week: number,
+    day_of_week: DayOfWeek,
     starts_at: string,
     ends_at: string
 }
@@ -16,28 +17,52 @@ export type ScheduleVersionRow = {
     effective_from: ISODate
 }
 
-export const create = async(
-    master_id: number,
-    day_of_week: number,
-    starts_at: string,
-    ends_at: string    
-): Promise<IntervalRow> => {
+export const createVersion = async (
+    client: PoolClient,
+    master_id: ID,
+    date: ISODate
+): Promise<ScheduleVersionRow> => {
     try {
-        const result = await pool.query<IntervalRow>(
+        const result = await client.query<ScheduleVersionRow>(
             `
-            INSERT INTO master_schedule_intervals (master_id, day_of_week, starts_at, ends_at)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, master_id, day_of_week, starts_at, ends_at
-            `, [master_id, day_of_week, starts_at, ends_at]
+            INSERT INTO master_schedule_versions (master_id, effective_from)
+            VALUES ($1, $2)
+            RETURNING id, effective_from::text AS effective_from
+            `, [master_id, date]
         )
+
         const row = result.rows[0]
         if (!row) {
-            throw new Error('Insert did not return a row')
+            throw new Error('Version insert did not return a row')
         }
         return row
     } catch (error) {
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Version with this date already exists')
+        }
+        throw error
+    }
+}
+
+export const createInterval = async (
+    client: PoolClient,
+    version_id: ID,
+    interval: CreateIntervalInput
+): Promise<ScheduleIntervalRow> => {
+    try {
+        const result = await client.query<ScheduleIntervalRow>(
+            `
+            INSERT INTO master_schedule_intervals (schedule_version_id, day_of_week, starts_at, ends_at)
+            VALUES ($1, $2, $3, $4)
+            RETURNING id, day_of_week, starts_at, ends_at
+            `, [version_id, interval.day_of_week, interval.starts_at, interval.ends_at]
+        )
+        const row = result.rows[0]
+        if (!row) throw new Error('Interval insert did not return a row')
+        return row
+    } catch (error) {
         if (isExclusionViolation(error)) {
-            throw new ConflictError('Master intervals are overlapping.')
+            throw new ConflictError('Intervals are overlapping')
         }
         if (isCheckViolation(error)) {
             const constraint = getConstraintName(error)

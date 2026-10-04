@@ -1,11 +1,11 @@
-import type { ID, ISODate } from '../../../schemas/scheduleSchema.js'
+import type { DayOfWeek, ID, ISODate, TimeFormat } from '../../../schemas/scheduleSchema.js'
 import type { ScheduleIntervalRow, ScheduleVersionRow } from './schedule.repository.js'
 
 export type ScheduleIntervalResponse = {
     id: ID
-    day_of_week: number
-    starts_at: string
-    ends_at: string
+    day_of_week: DayOfWeek
+    starts_at: TimeFormat
+    ends_at: TimeFormat
 }
 
 export type ScheduleVersionResponse = {

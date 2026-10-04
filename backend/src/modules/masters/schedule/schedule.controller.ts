@@ -2,16 +2,16 @@ import type { NextFunction, Request, Response } from 'express'
 import { z } from 'zod/v4'
 import * as scheduleService from './schedule.service.js'
 import type { masterParamsSchema } from '../../../schemas/masterSchema.js'
-import type { createIntervalSchema, DeleteIntervalParams, getVersionParamsSchema, scheduleQuerySchema, UpdateIntervalInput, updateIntervalParamsSchema } from '../../../schemas/scheduleSchema.js'
+import type { createVersionSchema, DeleteIntervalParams, getVersionParamsSchema, scheduleQuerySchema, UpdateIntervalInput, updateIntervalParamsSchema } from '../../../schemas/scheduleSchema.js'
 import { toIntervalResponse } from './schedule.mapper.js'
 
 type MasterParams = z.infer<typeof masterParamsSchema>
 type ScheduleQuery = z.infer<typeof scheduleQuerySchema>
 type ScheduleParams = z.infer<typeof getVersionParamsSchema>
 type UpdateScheduleParams = z.infer<typeof updateIntervalParamsSchema>
-type CreateScheduleBody = z.infer<typeof createIntervalSchema>
+type CreateVersionBody = z.infer<typeof createVersionSchema>
 
-export const createInterval = async(
+export const createVersionForMaster = async(
     req: Request,
     res: Response,
     next: NextFunction
@@ -22,10 +22,10 @@ export const createInterval = async(
             return
         }
 
-        const { id: master_id } = req.validated?.params as MasterParams
-        const { day_of_week, starts_at, ends_at } = req.validated?.body as CreateScheduleBody
-        const interval = await scheduleService.createInterval(master_id, day_of_week, starts_at, ends_at)
-        res.status(201).json(toIntervalResponse(interval))
+        const { id } = req.validated?.params as MasterParams
+        const { effective_from, intervals } = req.validated?.body as CreateVersionBody
+        const schedule = await scheduleService.createVersionForMaster(id, effective_from, intervals)
+        res.status(201).json(schedule)
     } catch (error) {
         next(error)
     }
