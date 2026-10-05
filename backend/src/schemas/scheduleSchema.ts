@@ -28,7 +28,7 @@ export const scheduleQuerySchema = z.strictObject({
     date: isoDateSchema
 })
 
-export const getVersionParamsSchema = z.strictObject({
+export const versionParamsSchema = z.strictObject({
     id: idParam,
     versionId: idParam
 })
@@ -45,29 +45,7 @@ export const createVersionSchema = z.strictObject({
     intervals: z.array(intervalSchema)
 })
 
-export const intervalParamsSchema = z.strictObject({
-    id: idParam
+export const updateVersionSchema = z.strictObject({
+    effective_from: isoDateSchema,
+    intervals: z.array(intervalSchema)
 })
-
-export const updateIntervalParamsSchema = z.strictObject({
-    id: idParam,
-    intervalId: idParam
-})
-
-export const updateIntervalSchema = z.strictObject({
-    day_of_week: dayOfWeekField.optional(),
-    starts_at: timeSchema.optional(),
-    ends_at: timeSchema.optional()
-}).refine(
-    (data) => Object.keys(data).length > 0,
-    { error: 'At least one field must be provided' }
-)
-
-export type UpdateIntervalInput = z.infer<typeof updateIntervalSchema>
-
-export const deleteIntervalParamsSchema = z.strictObject({
-    id: idParam,
-    intervalId: idParam
-})
-
-export type DeleteIntervalParams = z.infer<typeof deleteIntervalParamsSchema>

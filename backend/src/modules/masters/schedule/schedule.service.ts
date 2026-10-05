@@ -1,10 +1,12 @@
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { CreateIntervalInput, ID, ISODate, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
+import type { CreateIntervalInput, ID, ISODate } from '../../../schemas/scheduleSchema.js'
 import * as scheduleRepository from './schedule.repository.js'
 import { findMasterById } from '../master.repository.js'
 import { NotFoundError } from '../../../errors/NotFoundError.js'
 import { toIntervalResponse, toVersionResponse, type ScheduleIntervalResponse, type ScheduleVersionResponse } from './schedule.mapper.js'
 import { withTransaction } from '../../../db/withTransaction.js'
+import { ConflictError } from '../../../errors/ConflictError.js'
+import { AppError } from '../../../errors/AppError.js'
 
 type ScheduleResponse = {
     version: ScheduleVersionResponse | null
@@ -117,24 +119,62 @@ export const findScheduleByVersionId = async(
     }
 }
 
-export const updateInterval = async(
-    interval_id: number,
-    master_id: number,
-    data: UpdateIntervalInput
-) => {
-    const existing = await scheduleRepository.findIntervalById(interval_id, master_id)
-    if (!existing) return null
-
-    const starts_at = data.starts_at ?? existing.starts_at.slice(0, 5)
-    const ends_at = data.ends_at ?? existing.ends_at.slice(0, 5)
-
-    if (starts_at >= ends_at) {
-        throw new UnprocessableEntityError('starts_at must be earlier than ends_at')
+export const updateVersionForMaster = async(
+    master_id: ID,
+    versionId: ID,
+    date: ISODate,
+    intervals: CreateIntervalInput[]
+): Promise<ScheduleVersionDetailsResponse> => {
+    const master = await findMasterById(master_id)
+    if (!master) {
+        throw new NotFoundError(`Master with id ${master_id} not found`)
     }
 
-    return scheduleRepository.update(interval_id, master_id, data)
-}
+    const version = await scheduleRepository.findVersionById(master_id, versionId)
+    if (!version) {
+        throw new NotFoundError(`Version with id ${versionId} not found`)
+    }
 
-export const removeInterval = async(interval_id: number, master_id: number) => {
-    return scheduleRepository.remove(interval_id, master_id)
+    const today = getToday()
+
+    if (version.effective_from <= today) {
+        throw new ConflictError('Past or today\'s effective versions cannot be edited')
+    }
+
+    if (date <= today) {
+        throw new UnprocessableEntityError('effective_from must be later than today')
+    }
+
+    intervals.forEach((interval, index) => {
+        if (interval.starts_at >= interval.ends_at) {
+            throw new UnprocessableEntityError(
+                `Interval #${index + 1}: starts_at must be earlier than ends_at`
+            )
+        }
+    })
+    
+    const { updatedVersion, createdIntervals } = await withTransaction(
+        async client => {
+            const updatedVersion = await scheduleRepository.updateVersionDate(client, master_id, versionId, date)
+            
+            await scheduleRepository.deleteIntervalsByVersionId(client, versionId)
+
+            const createdIntervals: scheduleRepository.ScheduleIntervalRow[] = []
+            for (const interval of intervals) {
+                createdIntervals.push(
+                    await scheduleRepository.createInterval(client, versionId, interval)
+                )
+            }
+            return { updatedVersion, createdIntervals }
+        }
+    )
+
+    createdIntervals.sort((a, b) => 
+        a.day_of_week - b.day_of_week || a.starts_at.localeCompare(b.starts_at)
+    )
+
+    return {
+        version: toVersionResponse(updatedVersion),
+        intervals: createdIntervals.map(interval => toIntervalResponse(interval))
+    }
 }

@@ -3,7 +3,7 @@ import { pool } from '../../../db/pool.js'
 import { ConflictError } from '../../../errors/ConflictError.js'
 import { getConstraintName, isCheckViolation, isExclusionViolation, isUniqueViolation } from '../../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
-import type { CreateIntervalInput, DayOfWeek, ID, ISODate, TimeFormat, UpdateIntervalInput } from '../../../schemas/scheduleSchema.js'
+import type { CreateIntervalInput, DayOfWeek, ID, ISODate } from '../../../schemas/scheduleSchema.js'
 
 export type ScheduleIntervalRow = {
     id: ID,
@@ -127,68 +127,40 @@ export const findVersionById = async(master_id: ID, versionId: ID): Promise<Sche
     return result.rows[0] ?? null
 }
 
-export const update = async(
-    interval_id: number,
-    master_id: number,
-    data: UpdateIntervalInput  
-): Promise<IntervalRow | null> => {
+export const updateVersionDate = async(
+    client: PoolClient,
+    master_id: ID,
+    version_id: ID,
+    date: ISODate
+): Promise<ScheduleVersionRow> => {
     try {
-        const fields: string[] = []
-        const values: unknown[] = []
-        
-        if (data.day_of_week !== undefined) {
-            fields.push(`day_of_week = $${fields.length + 1}`)
-            values.push(data.day_of_week)
-        }
-
-        if (data.starts_at !== undefined) {
-            fields.push(`starts_at = $${fields.length + 1}`)
-            values.push(data.starts_at)
-        }
-
-        if (data.ends_at !== undefined) {
-            fields.push(`ends_at = $${fields.length + 1}`)
-            values.push(data.ends_at)
-        }
-        
-        values.push(interval_id)
-        values.push(master_id)
-
-        const idsCondition = `id = $${values.length - 1} AND master_id = $${values.length}`
-
-        const result = await pool.query<IntervalRow>(
+        const result = await client.query<ScheduleVersionRow>(
             `
-            UPDATE master_schedule_intervals
-            SET ${fields.join(', ')}
-            WHERE ${idsCondition}
-            RETURNING id, day_of_week, starts_at, ends_at
-            `, values
+            UPDATE master_schedule_versions
+            SET effective_from = $1
+            WHERE id = $2 AND master_id = $3
+            RETURNING id, effective_from::text AS effective_from
+            `, [date, version_id, master_id]
         )
-        return result.rows[0] ?? null
+        const row = result.rows[0]
+        if (!row) throw new Error('Version update did not return a row')
+        return row
     } catch (error) {
-        if (isExclusionViolation(error)) {
-            throw new ConflictError('Master intervals are overlapping.')
-        }
-        if (isCheckViolation(error)) {
-            const constraint = getConstraintName(error)
-            if (constraint === 'master_schedule_intervals_day_of_week_check') {
-                throw new UnprocessableEntityError('day_of_week must be between 1 and 7')
-            }
-            if (constraint === 'master_schedule_intervals_check') {
-                throw new UnprocessableEntityError('starts_at must be earlier than ends_at')
-            }
-            throw new UnprocessableEntityError('Interval violates a check constraint')
+        if (isUniqueViolation(error)) {
+            throw new ConflictError('Version with this date already exists')
         }
         throw error
     }
 }
 
-export const remove = async(interval_id: number, master_id: number): Promise<boolean> => {
-    const result = await pool.query<IntervalRow>(
+export const deleteIntervalsByVersionId = async (
+    client: PoolClient,
+    version_id: ID
+): Promise<void> => {
+    await client.query(
         `
         DELETE FROM master_schedule_intervals
-        WHERE id = $1 AND master_id = $2
-        `, [interval_id, master_id]
+        WHERE schedule_version_id = $1
+        `, [version_id]
     )
-    return (result.rowCount ?? 0) > 0
 }
