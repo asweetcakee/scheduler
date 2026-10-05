@@ -6,7 +6,6 @@ import { NotFoundError } from '../../../errors/NotFoundError.js'
 import { toIntervalResponse, toVersionResponse, type ScheduleIntervalResponse, type ScheduleVersionResponse } from './schedule.mapper.js'
 import { withTransaction } from '../../../db/withTransaction.js'
 import { ConflictError } from '../../../errors/ConflictError.js'
-import { AppError } from '../../../errors/AppError.js'
 
 type ScheduleResponse = {
     version: ScheduleVersionResponse | null
@@ -176,5 +175,29 @@ export const updateVersionForMaster = async(
     return {
         version: toVersionResponse(updatedVersion),
         intervals: createdIntervals.map(interval => toIntervalResponse(interval))
+    }
+}
+
+export const removeVersionForMaster = async(
+    master_id: ID,
+    versionId: ID
+): Promise<void> => {
+    const master = await findMasterById(master_id)
+    if (!master) {
+        throw new NotFoundError(`Master with id ${master_id} not found`)
+    }
+
+    const version = await scheduleRepository.findVersionById(master_id, versionId)
+    if (!version) {
+        throw new NotFoundError(`Version with id ${versionId} not found`)
+    }
+
+    if (version.effective_from <= getToday()) {
+        throw new ConflictError('Past or today\'s effective versions cannot be deleted')
+    }
+
+    const deleted = await scheduleRepository.removeVersion(master_id, versionId)
+    if (!deleted) {
+        throw new NotFoundError(`Version with id ${versionId} not found`)
     }
 }

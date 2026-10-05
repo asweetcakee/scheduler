@@ -20,5 +20,6 @@ router.patch('/:id', validate({ params: masterParamsSchema, body: updateMasterSc
 router.put('/:id/schedule/versions/:versionId', validate({ params: versionParamsSchema, body: updateVersionSchema }), scheduleController.updateVersionForMaster)
 
 router.delete('/:id', validate({ params: masterParamsSchema }), masterController.removeMaster)
+router.delete('/:id/schedule/versions/:versionId', validate({ params: versionParamsSchema }), scheduleController.removeVersionForMaster)
 
 export default router

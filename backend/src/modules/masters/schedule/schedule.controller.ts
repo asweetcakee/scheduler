@@ -108,7 +108,7 @@ export const updateVersionForMaster = async(
     }
 }
 
-export const removeInterval = async(
+export const removeVersionForMaster = async(
     req: Request,
     res: Response,
     next: NextFunction
@@ -118,6 +118,8 @@ export const removeInterval = async(
             res.status(500).json({ error: 'Missing validated params' })
             return
         }
+        const { id, versionId } = req.validated.params as ScheduleParams
+        await scheduleService.removeVersionForMaster(id, versionId)
         res.status(204).send()
     } catch (error) {
         next(error)

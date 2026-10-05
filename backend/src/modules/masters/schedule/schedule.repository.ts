@@ -164,3 +164,16 @@ export const deleteIntervalsByVersionId = async (
         `, [version_id]
     )
 }
+
+export const removeVersion = async (
+    master_id: ID,
+    version_id: ID
+): Promise<boolean> => {
+    const result = await pool.query(
+        `
+        DELETE FROM master_schedule_versions
+        WHERE id = $1 AND master_id = $2
+        `, [version_id, master_id]
+    )
+    return (result.rowCount ?? 0) > 0
+}
