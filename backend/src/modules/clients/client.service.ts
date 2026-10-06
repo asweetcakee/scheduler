@@ -31,7 +31,7 @@ export const updateClient = async ( id: number, data: UpdateClientInput) => {
     if (!client) {
         throw new NotFoundError(`Client with id ${id} not found`)
     }
-    return clientRepository.update(id, data)
+    return client
 }
 
 export const removeClient = async ( id: number ): Promise<void> => {
