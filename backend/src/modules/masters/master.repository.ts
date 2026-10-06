@@ -1,6 +1,6 @@
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
-import { isUniqueViolation } from '../../errors/pgErrorCodes.js'
+import { isForeignKeyViolation, isUniqueViolation } from '../../errors/pgErrorCodes.js'
 import type { UpdateMasterInput } from '../../schemas/masterSchema.js'
 
 type MasterRow = {
@@ -35,17 +35,18 @@ export const create = async (
     }
 }
 
-export const findMasters = async (): Promise<MasterRow[]> => {
+export const findAll = async (): Promise<MasterRow[]> => {
     const result = await pool.query<MasterRow>(
         `
         SELECT id, name, phone, active
         FROM masters
+        ORDER BY id
         `
     )
     return result.rows
 }
 
-export const findMasterById = async (id: number): Promise<MasterRow | null> => {
+export const findById = async (id: number): Promise<MasterRow | null> => {
     const result = await pool.query<MasterRow>(
         `
         SELECT id, name, phone, active
@@ -99,11 +100,18 @@ export const update = async (
 }
 
 export const remove = async (id: number): Promise<boolean> => {
-    const result = await pool.query<MasterRow>(
-        `
-        DELETE FROM masters
-        WHERE id = $1
-        `, [id]
-    )
-    return (result.rowCount ?? 0) > 0
+    try {
+        const result = await pool.query(
+            `
+            DELETE FROM masters
+            WHERE id = $1
+            `, [id]
+        )
+        return (result.rowCount ?? 0) > 0
+    } catch (error) {
+        if (isForeignKeyViolation(error)) {
+            throw new ConflictError('Master has related records and cannot be removed')
+        }
+        throw error
+    }
 }

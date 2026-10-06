@@ -1,7 +1,7 @@
 import { UnprocessableEntityError } from '../../../errors/UnprocessableEntityError.js'
 import type { CreateIntervalInput, ID, ISODate } from '../../../schemas/scheduleSchema.js'
 import * as scheduleRepository from './schedule.repository.js'
-import { findMasterById } from '../master.repository.js'
+import * as masterService from '../master.service.js'
 import { NotFoundError } from '../../../errors/NotFoundError.js'
 import { toIntervalResponse, toVersionResponse, type ScheduleIntervalResponse, type ScheduleVersionResponse } from './schedule.mapper.js'
 import { withTransaction } from '../../../db/withTransaction.js'
@@ -27,10 +27,7 @@ export const createVersionForMaster = async(
     date: ISODate,
     intervals: CreateIntervalInput[]
 ): Promise<ScheduleVersionDetailsResponse> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+    await masterService.findMasterById(master_id)
     
     if (date <= getToday()) {
         throw new UnprocessableEntityError('effective_from must be later than today')
@@ -72,10 +69,7 @@ export const findScheduleForDate = async(
     master_id: ID,
     date: ISODate
 ): Promise<ScheduleResponse> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+    await masterService.findMasterById(master_id)
     
     const version = await scheduleRepository.findVersionForDate(master_id, date)
     if (!version) return { version: null, intervals: [] }
@@ -88,23 +82,17 @@ export const findScheduleForDate = async(
 }
 
 export const findVersionsForMaster = async(master_id: ID): Promise<ScheduleVersionResponse[]> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+    await masterService.findMasterById(master_id)
 
     const versions = await scheduleRepository.findVersionsForMaster(master_id)
     return versions.map(version => toVersionResponse(version))
 }
 
-export const findScheduleByVersionId = async(
+export const findVersionDetails = async(
     master_id: ID,
     versionId: ID
-): Promise<ScheduleResponse> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+): Promise<ScheduleVersionDetailsResponse> => {
+    await masterService.findMasterById(master_id)
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
     if (!version) {
@@ -124,14 +112,11 @@ export const updateVersionForMaster = async(
     date: ISODate,
     intervals: CreateIntervalInput[]
 ): Promise<ScheduleVersionDetailsResponse> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+    await masterService.findMasterById(master_id)
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
     if (!version) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 
     const today = getToday()
@@ -156,7 +141,7 @@ export const updateVersionForMaster = async(
         async client => {
             const updatedVersion = await scheduleRepository.updateVersionDate(client, master_id, versionId, date)
             
-            await scheduleRepository.deleteIntervalsByVersionId(client, versionId)
+            await scheduleRepository.removeIntervalsByVersionId(client, versionId)
 
             const createdIntervals: scheduleRepository.ScheduleIntervalRow[] = []
             for (const interval of intervals) {
@@ -182,14 +167,11 @@ export const removeVersionForMaster = async(
     master_id: ID,
     versionId: ID
 ): Promise<void> => {
-    const master = await findMasterById(master_id)
-    if (!master) {
-        throw new NotFoundError(`Master with id ${master_id} not found`)
-    }
+    await masterService.findMasterById(master_id)
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
     if (!version) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 
     if (version.effective_from <= getToday()) {
@@ -198,6 +180,6 @@ export const removeVersionForMaster = async(
 
     const deleted = await scheduleRepository.removeVersion(master_id, versionId)
     if (!deleted) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 }

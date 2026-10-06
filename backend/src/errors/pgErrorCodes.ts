@@ -7,6 +7,10 @@ export const isUniqueViolation = (error: unknown): boolean => {
     return (error as PgError)?.code === '23505'
 }
 
+export const isForeignKeyViolation = (error: unknown): boolean => {
+    return (error as PgError)?.code === '23503'
+}
+
 export const isInvalidTextRepresentation = (error: unknown): boolean => {
     return (error as PgError)?.code === '22P02'
 }

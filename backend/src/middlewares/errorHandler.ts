@@ -3,6 +3,7 @@ import { ZodError } from 'zod/v4'
 import { ConflictError } from '../errors/ConflictError.js'
 import { UnprocessableEntityError } from '../errors/UnprocessableEntityError.js'
 import { NotFoundError } from '../errors/NotFoundError.js'
+import { isBodyParseError } from '../errors/isBodyParseError.js'
 
 export const errorHandler = (
     error: unknown,
@@ -10,7 +11,10 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ) : void => {
-    console.error(error)
+    if (isBodyParseError(error)) {
+        res.status(400).json({ error: 'Invalid JSON body' })
+        return
+    }
 
     if (error instanceof ZodError) {
         res.status(400).json({
@@ -41,6 +45,7 @@ export const errorHandler = (
         return
     }
 
+    console.error(error)
     res.status(500).json({
         error: 'Internal server error'
     })

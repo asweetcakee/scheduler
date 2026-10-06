@@ -1,3 +1,4 @@
+import { NotFoundError } from '../../errors/NotFoundError.js'
 import type { UpdateServiceInput } from '../../schemas/serviceSchema.js'
 import * as serviceRepository from './service.repository.js'
 
@@ -10,17 +11,28 @@ export const createService = async (
 }
 
 export const findAllServices = async () => {
-    return serviceRepository.findServices()
+    return serviceRepository.findAll()
 }
 
 export const findServiceById = async (id: number) => {
-    return serviceRepository.findServiceById(id)
+    const service = await serviceRepository.findById(id)
+    if (!service) {
+        throw new NotFoundError(`Service with id ${id} not found`)
+    }
+    return service
 }
 
 export const updateService = async (id: number, data: UpdateServiceInput) => {
-    return serviceRepository.update(id, data)
+    const service = await serviceRepository.update(id, data)
+    if (!service) {
+        throw new NotFoundError(`Service with id ${id} not found`)
+    }
+    return service
 }
 
-export const removeService = async (id: number) => {
-    return serviceRepository.remove(id)
+export const removeService = async (id: number): Promise<void> => {
+    const removed = await serviceRepository.remove(id)
+    if (!removed) {
+        throw new NotFoundError(`Service with id ${id} not found`)
+    }
 }

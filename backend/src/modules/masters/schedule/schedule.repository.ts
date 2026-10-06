@@ -116,13 +116,13 @@ export const findVersionsForMaster = async(master_id: ID): Promise<ScheduleVersi
     return result.rows
 }
 
-export const findVersionById = async(master_id: ID, versionId: ID): Promise<ScheduleVersionRow | null> => {
+export const findVersionById = async(master_id: ID, version_id: ID): Promise<ScheduleVersionRow | null> => {
     const result = await pool.query<ScheduleVersionRow>(
         `
         SELECT id, effective_from::text AS effective_from
         FROM master_schedule_versions
         WHERE master_id = $1 AND id = $2
-        `, [master_id, versionId]
+        `, [master_id, version_id]
     )
     return result.rows[0] ?? null
 }
@@ -153,7 +153,7 @@ export const updateVersionDate = async(
     }
 }
 
-export const deleteIntervalsByVersionId = async (
+export const removeIntervalsByVersionId = async (
     client: PoolClient,
     version_id: ID
 ): Promise<void> => {
