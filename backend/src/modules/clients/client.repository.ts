@@ -61,11 +61,12 @@ export const findByPhone = async (phone: string): Promise<ClientRow | null> => {
     return result.rows[0] ?? null
 }
 
-export const findClients = async (): Promise<ClientRow[]> => {
+export const findAll = async (): Promise<ClientRow[]> => {
     const result = await pool.query<ClientRow>(
         `
         SELECT id, name, phone, note
         FROM clients
+        ORDER BY id
         `
     )
 

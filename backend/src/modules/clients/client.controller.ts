@@ -40,12 +40,6 @@ export const getClientById = async (
 
         const { id } = req.validated.params as ClientParams
         const client = await clientService.findClientById(id)
-        if (!client) {
-            res.status(404).json({
-                error: 'Client not found'
-            })
-            return
-        }
         res.status(200).json(client)
     } catch (error) {
         next(error)
@@ -84,19 +78,13 @@ export const updateClient = async(
 ): Promise<void> => {
     try {
         if (!req.validated?.params || !req.validated?.body) {
-            res.status(500).json({ error: 'Missing validated body' })
+            res.status(500).json({ error: 'Missing validated params or body' })
             return
         }
 
         const { id } = req.validated.params as ClientParams
         const data = req.validated.body as UpdateClientBody
         const client = await clientService.updateClient(id, data)
-        if (!client) {
-            res.status(404).json({
-                error: 'Client not found'
-            })
-            return
-        }
         res.status(200).json(client)
     } catch (error) {
         next(error)
@@ -109,14 +97,13 @@ export const removeClient = async(
     next: NextFunction
 ): Promise<void> => {
     try {
-        const { id } = req.validated?.params as ClientParams
-        const result = await clientService.removeClient(id)
-        if (!result) {
-            res.status(404).json({
-                error: 'Client not found'
-            })
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
             return
         }
+        
+        const { id } = req.validated.params as ClientParams
+        await clientService.removeClient(id)
         res.status(204).send()
     } catch (error) {
         next(error)

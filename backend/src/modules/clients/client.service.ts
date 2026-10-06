@@ -1,3 +1,4 @@
+import { NotFoundError } from '../../errors/NotFoundError.js'
 import type { UpdateClientInput } from '../../schemas/clientSchema.js'
 import * as clientRepository from './client.repository.js'
 
@@ -10,7 +11,11 @@ export const createClient = async (
 }
 
 export const findClientById = async (id: number) => {
-    return clientRepository.findById(id)
+    const client = await clientRepository.findById(id)
+    if (!client) {
+        throw new NotFoundError(`Client with id ${id} not found`)
+    }
+    return client
 }
 
 export const findClientByPhone = async (phone: string) => {
@@ -18,13 +23,20 @@ export const findClientByPhone = async (phone: string) => {
 }
 
 export const findAllClients = async () => {
-    return clientRepository.findClients()
+    return clientRepository.findAll()
 }
 
 export const updateClient = async ( id: number, data: UpdateClientInput) => {
+    const client = await clientRepository.update(id, data)
+    if (!client) {
+        throw new NotFoundError(`Client with id ${id} not found`)
+    }
     return clientRepository.update(id, data)
 }
 
-export const removeClient = async ( id: number ) => {
-    return clientRepository.remove(id)
+export const removeClient = async ( id: number ): Promise<void> => {
+    const removed = await clientRepository.remove(id)
+    if (!removed) {
+        throw new NotFoundError(`Client with id ${id} not found`)
+    }
 }
