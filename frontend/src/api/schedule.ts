@@ -1,42 +1,53 @@
-import type { CreateIntervalBody, Interval, UpdateIntervalBody } from '../types/schedule'
+import type { ID, ISODate } from '../schemas/scheduleSchema'
+import type { CreateVersionBody, ScheduleResponse, ScheduleResponseDetails, UpdateVersionBody } from '../types/schedule'
 import { ApiError } from './apiError'
 import { handleResponse } from './handleResponse'
 
 const baseUrl = '/api/masters'
 
-export const getIntervals = async(master_id: number): Promise<Interval[]> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals`)
-    return handleResponse<Interval[]>(response)
+export const getVersions = async(master_id: ID): Promise<ScheduleResponseDetails> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/versions`)
+    return handleResponse<ScheduleResponseDetails>(response)
 }
 
-export const createInterval = async(master_id: number, data: CreateIntervalBody): Promise<Interval> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals`, {
+export const getVersionForDate = async(master_id: ID, date: ISODate): Promise<ScheduleResponse> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule?date=${date}`)
+    return handleResponse<ScheduleResponse>(response)
+}
+
+export const getVersionById = async(master_id: ID, version_id: ID): Promise<ScheduleResponseDetails> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/versions/${version_id}`)
+    return handleResponse<ScheduleResponseDetails>(response)
+}
+
+export const createVersion = async(master_id: ID, data: CreateVersionBody): Promise<ScheduleResponseDetails> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/versions`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-    return handleResponse<Interval>(response)
+    return handleResponse<ScheduleResponseDetails>(response)
 }
 
-export const updateInterval = async(master_id: number, interval_id: number, data: UpdateIntervalBody): Promise<Interval> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals/${interval_id}`, {
-        method: 'PATCH',
+export const updateVersion = async(master_id: ID, version_id: ID, data: UpdateVersionBody): Promise<ScheduleResponseDetails> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/versions/${version_id}`, {
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     })
-    return handleResponse<Interval>(response)
+    return handleResponse<ScheduleResponseDetails>(response)
 }
 
-export const removeInterval = async(master_id: number, interval_id: number): Promise<void> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals/${interval_id}`, {
+export const removeVersion = async(master_id: ID, version_id: ID): Promise<void> => {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals/${version_id}`, {
         method: 'DELETE'
     })
     if (!response.ok) {
         const body = await response.json().catch(() => null)
-        throw new ApiError(response.status, body, 'Failed to delete interval')
+        throw new ApiError(response.status, body, 'Не удалось удалить версию расписания')
     }
 }
