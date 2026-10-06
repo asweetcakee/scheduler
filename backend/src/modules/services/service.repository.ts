@@ -43,17 +43,18 @@ export const create = async(
     }
 }
 
-export const findServices = async(): Promise<ServiceRow[]> => {
+export const findAll = async(): Promise<ServiceRow[]> => {
     const result = await pool.query<ServiceRow>(
         `
         SELECT id, name, price, duration
         FROM services
+        ORDER BY id
         `
     )
     return result.rows
 }
 
-export const findServiceById = async(id: number): Promise<ServiceRow | null> => {
+export const findById = async(id: number): Promise<ServiceRow | null> => {
     const result = await pool.query<ServiceRow>(
         `
         SELECT id, name, price, duration

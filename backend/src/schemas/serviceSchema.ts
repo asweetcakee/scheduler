@@ -13,8 +13,8 @@ const nameField = z.string()
 
 const priceField = z.string()
     .trim()
-    .regex(/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})$/, {
-        error: 'Price must have exactly two decimal places (e.g., 3500.00)',
+    .regex(/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/, {
+        error: 'Price must be a non-negative number with up to two decimal places (e.g. 3500 or 3500.50)',
     })
 
 const durationField = z.number()
