@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
-import { z } from 'zod/v4'
+import type { z } from 'zod/v4'
 import * as scheduleService from './schedule.service.js'
 import type { masterParamsSchema } from '../../../schemas/masterSchema.js'
 import type { createVersionSchema, versionParamsSchema, scheduleQuerySchema, updateVersionSchema } from '../../../schemas/scheduleSchema.js'
@@ -21,10 +21,10 @@ export const createVersionForMaster = async(
             return
         }
 
-        const { id } = req.validated?.params as MasterParams
-        const { effective_from, intervals } = req.validated?.body as CreateVersionBody
-        const schedule = await scheduleService.createVersionForMaster(id, effective_from, intervals)
-        res.status(201).json(schedule)
+        const { id } = req.validated.params as MasterParams
+        const { effective_from, intervals } = req.validated.body as CreateVersionBody
+        const version = await scheduleService.createVersionForMaster(id, effective_from, intervals)
+        res.status(201).json(version)
     } catch (error) {
         next(error)
     }
@@ -62,14 +62,14 @@ export const getVersionsForMaster = async(
         }
 
         const { id } = req.validated.params as MasterParams
-        const schedules = await scheduleService.findVersionsForMaster(id)
-        res.status(200).json(schedules)
+        const versions = await scheduleService.findVersionsForMaster(id)
+        res.status(200).json(versions)
     } catch (error) {
         next(error)
     }
 }
 
-export const getScheduleByVersionId = async(
+export const getVersionById = async(
     req: Request,
     res: Response,
     next: NextFunction
@@ -81,8 +81,8 @@ export const getScheduleByVersionId = async(
         }
 
         const { id, versionId } = req.validated.params as ScheduleParams
-        const schedules = await scheduleService.findScheduleByVersionId(id, versionId)
-        res.status(200).json(schedules)
+        const version = await scheduleService.findVersionDetails(id, versionId)
+        res.status(200).json(version)
     } catch (error) {
         next(error)
     }
@@ -100,7 +100,7 @@ export const updateVersionForMaster = async(
         }
 
         const { id, versionId } = req.validated.params as ScheduleParams
-        const { effective_from, intervals } = req.validated?.body as UpdateVersionBody
+        const { effective_from, intervals } = req.validated.body as UpdateVersionBody
         const schedule = await scheduleService.updateVersionForMaster(id, versionId, effective_from, intervals)
         res.status(200).json(schedule)
     } catch (error) {

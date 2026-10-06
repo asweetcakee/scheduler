@@ -11,7 +11,7 @@ router.get('/:id', validate({ params: masterParamsSchema }), masterController.ge
 
 router.get('/:id/schedule', validate({ params: masterParamsSchema, query: scheduleQuerySchema }), scheduleController.getScheduleForDate)
 router.get('/:id/schedule/versions', validate({ params: masterParamsSchema }), scheduleController.getVersionsForMaster)
-router.get('/:id/schedule/versions/:versionId', validate({ params: versionParamsSchema }), scheduleController.getScheduleByVersionId)
+router.get('/:id/schedule/versions/:versionId', validate({ params: versionParamsSchema }), scheduleController.getVersionById)
 
 router.post('/', validate({ body: createMasterSchema }), masterController.createMaster)
 router.post('/:id/schedule/versions', validate({ params: masterParamsSchema, body: createVersionSchema }), scheduleController.createVersionForMaster)

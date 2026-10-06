@@ -88,10 +88,10 @@ export const findVersionsForMaster = async(master_id: ID): Promise<ScheduleVersi
     return versions.map(version => toVersionResponse(version))
 }
 
-export const findScheduleByVersionId = async(
+export const findVersionDetails = async(
     master_id: ID,
     versionId: ID
-): Promise<ScheduleResponse> => {
+): Promise<ScheduleVersionDetailsResponse> => {
     await masterService.findMasterById(master_id)
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
@@ -116,7 +116,7 @@ export const updateVersionForMaster = async(
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
     if (!version) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 
     const today = getToday()
@@ -141,7 +141,7 @@ export const updateVersionForMaster = async(
         async client => {
             const updatedVersion = await scheduleRepository.updateVersionDate(client, master_id, versionId, date)
             
-            await scheduleRepository.deleteIntervalsByVersionId(client, versionId)
+            await scheduleRepository.removeIntervalsByVersionId(client, versionId)
 
             const createdIntervals: scheduleRepository.ScheduleIntervalRow[] = []
             for (const interval of intervals) {
@@ -171,7 +171,7 @@ export const removeVersionForMaster = async(
 
     const version = await scheduleRepository.findVersionById(master_id, versionId)
     if (!version) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 
     if (version.effective_from <= getToday()) {
@@ -180,6 +180,6 @@ export const removeVersionForMaster = async(
 
     const deleted = await scheduleRepository.removeVersion(master_id, versionId)
     if (!deleted) {
-        throw new NotFoundError(`Version with id ${versionId} not found`)
+        throw new NotFoundError(`Schedule version with id ${versionId} not found for master ${master_id}`)
     }
 }
