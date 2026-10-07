@@ -1,12 +1,9 @@
 import { useMemo, useState } from 'react'
-import { MasterScheduleRow } from '../components/masters/schedule/MasterScheduleRow'
-import { useMasters } from '../hooks/masters'
-import type { SelectedMaster } from '../types/schedule'
-import { ScheduleFormModal } from '../components/masters/schedule/ScheduleFormModal'
+import { MasterScheduleRow } from '../../components/masters/schedule/MasterScheduleRow'
+import { useMasters } from '../../hooks/masters'
 
 export const SchedulePage = () => {
     const { data: masters, isLoading: isMastersLoading, error: mastersError } = useMasters()
-    const [selectedMaster, setSelectedMaster] = useState<SelectedMaster>(null)
     const [nameSearch, setNameSearch] = useState<string>('')
     
     const filteredMasters= useMemo(() => {
@@ -19,14 +16,6 @@ export const SchedulePage = () => {
 
     if (isMastersLoading) return <p>Loading masters...</p>
     if (mastersError) return <p>Error: {mastersError.message}</p>
-
-    const onSelectedMaster = (selected: SelectedMaster) => {
-        setSelectedMaster(selected)
-    }
-
-    const onClose = () => {
-        setSelectedMaster(null)
-    }
 
     return(
         <section className='flex flex-col w-full'>
@@ -70,19 +59,11 @@ export const SchedulePage = () => {
                             <MasterScheduleRow 
                                 key={master.id}
                                 master={master}
-                                onSelectedMaster={onSelectedMaster}
                             />
                         ))}                    
                     </tbody>
                 </table>
             </div>
-            {selectedMaster !== null && (
-                <ScheduleFormModal
-                    master_id={selectedMaster.master.id}
-                    master_name={selectedMaster.master.name}
-                    onClose={onClose}
-                />
-            )}
         </section>
     )
 }

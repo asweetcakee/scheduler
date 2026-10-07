@@ -1,11 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createMaster, removeMaster, getMasters, updateMaster } from '../api/masters'
+import { createMaster, removeMaster, getMasters, updateMaster, getMasterById } from '../api/masters'
 import type { UpdateMasterInput } from '../types/master'
+import type { ID } from '../schemas/scheduleSchema'
 
 export const useMasters = () => {
     return useQuery({
         queryKey: ['masters'],
         queryFn: getMasters
+    })
+}
+
+export const useMasterById = (id: ID, enabled = true) => {
+    return useQuery({
+        queryKey: ['masters', id],
+        queryFn: () => getMasterById(id),
+        enabled
     })
 }
 

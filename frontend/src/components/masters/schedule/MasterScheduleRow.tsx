@@ -1,15 +1,16 @@
 import { useMemo } from 'react'
 import { useVersionForDate } from '../../../hooks/schedule'
 import type { Master } from '../../../types/master'
-import type { ScheduleIntervalResponse, SelectedMaster } from '../../../types/schedule'
+import type { ScheduleIntervalResponse } from '../../../types/schedule'
 import { DAYS, type DayNumber } from './constants'
+import { useNavigate } from 'react-router-dom'
 
 type ScheduleRowProps = {
-    master: Pick<Master, 'id' | 'name' | 'phone'>,
-    onSelectedMaster: (selected: SelectedMaster) => void
+    master: Pick<Master, 'id' | 'name'>
 }
 
-export const MasterScheduleRow = ({ master, onSelectedMaster }: ScheduleRowProps) => {
+export const MasterScheduleRow = ({ master }: ScheduleRowProps) => {
+    const navigate = useNavigate()
     const { data: scheduleData, isLoading, error } = useVersionForDate(master.id)
     
     const intervalsByDay = useMemo<Partial<Record<DayNumber, ScheduleIntervalResponse[]>>>(() => {
@@ -42,10 +43,7 @@ export const MasterScheduleRow = ({ master, onSelectedMaster }: ScheduleRowProps
     )
 
     const handleSelect = () => {
-        onSelectedMaster({
-            master,
-            version: scheduleData?.version ?? null
-        })
+        navigate(`/schedule/${master.id}`)
     }
     
     return(

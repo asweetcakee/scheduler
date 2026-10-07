@@ -1,5 +1,4 @@
 import type { DayOfWeek, ID, ISODate, TimeFormat } from '../schemas/scheduleSchema'
-import type { Master } from './master'
 
 export type ScheduleVersionResponse = {
     id: ID,
@@ -38,14 +37,3 @@ export type UpdateVersionBody = {
     effective_from: ISODate,
     intervals: IntervalBody[]
 }
-
-export type ScheduleFormModalProps = {
-    master_id: ID,
-    master_name: string,
-    onClose: () => void
-}
-
-export type SelectedMaster = { 
-    master: Pick<Master, 'id' | 'name' | 'phone'>,
-    version: ScheduleVersionResponse | null
-} | null
