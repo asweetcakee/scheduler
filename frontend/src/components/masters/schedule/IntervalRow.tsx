@@ -1,8 +1,6 @@
 import { useForm } from 'react-hook-form'
-import { useCreateInterval, useRemoveInterval, useUpdateInterval } from '../../../hooks/schedule'
 import { intervalFormSchema, type IntervalForm } from '../../../schemas/scheduleSchema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import type { Interval } from '../../../types/schedule'
 import type { DayNumber } from './constants'
 
 type IntervalRowProps = {

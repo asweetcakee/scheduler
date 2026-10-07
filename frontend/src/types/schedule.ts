@@ -1,4 +1,3 @@
-import type { DayNumber } from '../components/masters/schedule/constants'
 import type { DayOfWeek, ID, ISODate, TimeFormat } from '../schemas/scheduleSchema'
 import type { Master } from './master'
 
@@ -41,10 +40,12 @@ export type UpdateVersionBody = {
 }
 
 export type ScheduleFormModalProps = {
-    master_id: number,
+    master_id: ID,
     master_name: string,
-    day: DayNumber,
     onClose: () => void
 }
 
-export type SelectedCell = { master: Pick<Master, 'id' | 'name'>, day: DayNumber } | null
+export type SelectedMaster = { 
+    master: Pick<Master, 'id' | 'name' | 'phone'>,
+    version: ScheduleVersionResponse | null
+} | null

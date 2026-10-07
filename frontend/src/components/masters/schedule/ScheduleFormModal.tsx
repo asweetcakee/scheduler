@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react'
 import type { ScheduleFormModalProps } from '../../../types/schedule'
 import { Modal } from '../../shared/Modal'
 import { IntervalRow } from './IntervalRow'
-import { useSchedule } from '../../../hooks/schedule'
 import { dayLabels } from './constants'
 
-export const ScheduleFormModal = ({ master_id, master_name, day, onClose }: ScheduleFormModalProps) => {
+export const ScheduleFormModal = ({ master_id, master_name, onClose }: ScheduleFormModalProps) => {
     const { data: intervals, isLoading, error } = useSchedule(master_id)
     const [isAdding, setIsAdding] = useState<boolean>(false)
     

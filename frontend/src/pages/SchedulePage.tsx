@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react'
 import { MasterScheduleRow } from '../components/masters/schedule/MasterScheduleRow'
 import { useMasters } from '../hooks/masters'
-import type { SelectedCell } from '../types/schedule'
+import type { SelectedMaster } from '../types/schedule'
 import { ScheduleFormModal } from '../components/masters/schedule/ScheduleFormModal'
 
 export const SchedulePage = () => {
     const { data: masters, isLoading: isMastersLoading, error: mastersError } = useMasters()
-    const [selectedCell, setSelectedCell] = useState<SelectedCell>(null)
+    const [selectedMaster, setSelectedMaster] = useState<SelectedMaster>(null)
     const [nameSearch, setNameSearch] = useState<string>('')
     
     const filteredMasters= useMemo(() => {
@@ -20,12 +20,12 @@ export const SchedulePage = () => {
     if (isMastersLoading) return <p>Loading masters...</p>
     if (mastersError) return <p>Error: {mastersError.message}</p>
 
-    const onSelectedDay = (selected: SelectedCell) => {
-        setSelectedCell(selected)
+    const onSelectedMaster = (selected: SelectedMaster) => {
+        setSelectedMaster(selected)
     }
 
     const onClose = () => {
-        setSelectedCell(null)
+        setSelectedMaster(null)
     }
 
     return(
@@ -70,17 +70,16 @@ export const SchedulePage = () => {
                             <MasterScheduleRow 
                                 key={master.id}
                                 master={master}
-                                onSelectedDay={onSelectedDay}
+                                onSelectedMaster={onSelectedMaster}
                             />
                         ))}                    
                     </tbody>
                 </table>
             </div>
-            {selectedCell !== null && (
+            {selectedMaster !== null && (
                 <ScheduleFormModal
-                    master_id={selectedCell.master.id}
-                    master_name={selectedCell.master.name}
-                    day={selectedCell.day}
+                    master_id={selectedMaster.master.id}
+                    master_name={selectedMaster.master.name}
                     onClose={onClose}
                 />
             )}

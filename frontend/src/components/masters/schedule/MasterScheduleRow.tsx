@@ -1,15 +1,28 @@
-import { useSchedule } from '../../../hooks/schedule'
+import { useMemo } from 'react'
+import { useVersionForDate } from '../../../hooks/schedule'
 import type { Master } from '../../../types/master'
-import type { SelectedCell } from '../../../types/schedule'
+import type { ScheduleIntervalResponse, SelectedMaster } from '../../../types/schedule'
 import { DAYS, type DayNumber } from './constants'
 
 type ScheduleRowProps = {
-    master: Pick<Master, 'id' | 'name'>,
-    onSelectedDay: (selected: SelectedCell) => void
+    master: Pick<Master, 'id' | 'name' | 'phone'>,
+    onSelectedMaster: (selected: SelectedMaster) => void
 }
 
-export const MasterScheduleRow = ({ master, onSelectedDay }: ScheduleRowProps) => {
-    const { data: intervals, isLoading, error } = useSchedule(master.id)
+export const MasterScheduleRow = ({ master, onSelectedMaster }: ScheduleRowProps) => {
+    const { data: scheduleData, isLoading, error } = useVersionForDate(master.id)
+    
+    const intervalsByDay = useMemo<Partial<Record<DayNumber, ScheduleIntervalResponse[]>>>(() => {
+        if (!scheduleData?.intervals) return {}
+        
+        return scheduleData.intervals.reduce<Partial<Record<DayNumber, ScheduleIntervalResponse[]>>>((acc, interval) => {
+            const day = interval.day_of_week as DayNumber
+            if (!acc[day]) acc[day] = []
+            acc[day].push(interval)
+            return acc
+        }, {})
+    }, [scheduleData?.intervals])
+
     if (isLoading) return(
         <tr>
             <th scope='row' className='px-2 py-3 font-normal text-text text-left truncate' title={master.name}>
@@ -27,25 +40,32 @@ export const MasterScheduleRow = ({ master, onSelectedDay }: ScheduleRowProps) =
             <td colSpan={7} className='px-2 py-3'>Error: {error.message}</td>
         </tr>
     )
-    
-    const byDay = (day: DayNumber) => {
-        return intervals?.filter(interval => interval.day_of_week === day) ?? []
+
+    const handleSelect = () => {
+        onSelectedMaster({
+            master,
+            version: scheduleData?.version ?? null
+        })
     }
     
     return(
-        <tr className='bg-row-alt even:bg-surface'>
-            <th scope='row' className='px-2 py-3 font-normal text-text text-left truncate' title={master.name}>
+        <tr
+            className='group bg-row-alt even:bg-surface hover:bg-primary-hover hover:text-row-alt transition cursor-pointer'
+            onClick={handleSelect}
+        >
+            <th 
+                scope='row' 
+                className='px-2 py-3 font-normal text-text group-hover:text-row-alt text-left truncate' title={master.name}>
                 {master.name}
             </th>
-            {DAYS.map(day => (
-                <td 
-                    key={day}
-                    className='px-2 py-3 hover:bg-primary-hover hover:text-row-alt transition cursor-pointer'
-                    onClick={() => onSelectedDay({ master, day })}
-                >
-                    { byDay(day).map(interval => `${interval.starts_at}-${interval.ends_at}`).join(', ') || '-' }
-                </td>
-            ))}
+            {DAYS.map(day => {
+                const dayIntervals = intervalsByDay[day] || []
+                return (
+                    <td key={day} className='px-2 py-3 group-hover:text-row-alt'>
+                        {dayIntervals.map(i => `${i.starts_at}-${i.ends_at}`).join(', ') || '-'}
+                    </td>
+                )
+            })}
         </tr>
     )
 }

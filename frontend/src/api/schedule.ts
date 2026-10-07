@@ -1,13 +1,13 @@
 import type { ID, ISODate } from '../schemas/scheduleSchema'
-import type { CreateVersionBody, ScheduleResponse, ScheduleResponseDetails, UpdateVersionBody } from '../types/schedule'
+import type { CreateVersionBody, ScheduleResponse, ScheduleResponseDetails, ScheduleVersionResponse, UpdateVersionBody } from '../types/schedule'
 import { ApiError } from './apiError'
 import { handleResponse } from './handleResponse'
 
 const baseUrl = '/api/masters'
 
-export const getVersions = async(master_id: ID): Promise<ScheduleResponseDetails> => {
+export const getVersions = async(master_id: ID): Promise<ScheduleVersionResponse[]> => {
     const response = await fetch(`${baseUrl}/${master_id}/schedule/versions`)
-    return handleResponse<ScheduleResponseDetails>(response)
+    return handleResponse<ScheduleVersionResponse[]>(response)
 }
 
 export const getVersionForDate = async(master_id: ID, date: ISODate): Promise<ScheduleResponse> => {
@@ -43,7 +43,7 @@ export const updateVersion = async(master_id: ID, version_id: ID, data: UpdateVe
 }
 
 export const removeVersion = async(master_id: ID, version_id: ID): Promise<void> => {
-    const response = await fetch(`${baseUrl}/${master_id}/schedule/intervals/${version_id}`, {
+    const response = await fetch(`${baseUrl}/${master_id}/schedule/versions/${version_id}`, {
         method: 'DELETE'
     })
     if (!response.ok) {
