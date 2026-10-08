@@ -9,12 +9,12 @@ export const MasterScheduleLayout = () => {
 
     const { data: master, isLoading, error } = useMasterById(id, isValid)
     if (!isValid) return <p className='m-6'>Мастер не найден</p>
-    if (isLoading) return <p className='m-6'>Loading...</p>
+    if (isLoading) return <p className='m-6'>Загрузка...</p>
     if (error) return <p className='m-6'>Ошибка: {error.message}</p>
     if (!master) return <p className='m-6'>Мастер не найден</p>
 
     return (
-        <section className='mx-6 my-3 min-h-screen bg-page flex flex-col gap-2'>
+        <section className='mx-6 mt-6 bg-page flex flex-col gap-2'>
             <Link
                 to='/schedule'
                 className=' w-fit px-3 py-2 bg-surface text-sm font-medium text-text-secondary hover:bg-primary hover:text-text-alt transition-colors rounded-lg'

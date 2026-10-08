@@ -6,25 +6,25 @@ export type ScheduleVersionResponse = {
 }
 
 export type ScheduleIntervalResponse = {
-    id: ID
-    day_of_week: DayOfWeek
-    starts_at: TimeFormat
-    ends_at: TimeFormat
+    id: ID,
+    day_of_week: DayOfWeek,
+    starts_at: TimeFormat,
+    ends_at: TimeFormat,
 }
 
 export type ScheduleResponse = {
-    version: ScheduleVersionResponse | null
+    version: ScheduleVersionResponse | null,
     intervals: ScheduleIntervalResponse[]
 }
 
 export type ScheduleResponseDetails = {
-    version: ScheduleVersionResponse
+    version: ScheduleVersionResponse,
     intervals: ScheduleIntervalResponse[]
 }
 
 type IntervalBody = {
-    day_of_week: DayOfWeek
-    starts_at: TimeFormat
+    day_of_week: DayOfWeek,
+    starts_at: TimeFormat,
     ends_at: TimeFormat
 }
 
