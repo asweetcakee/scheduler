@@ -1,13 +1,13 @@
 import { Link, useParams } from 'react-router-dom'
-import { getToday } from '../../hooks/helper'
 import { useVersionForDate, useVersions } from '../../hooks/schedule'
 import { VersionSummary } from '../../components/masters/schedule/VersionSummary'
 import { WeekSchedule } from '../../components/masters/schedule/WeekSchedule'
+import { useToday } from '../../hooks/useToday'
 
 export const MasterScheduleOverviewPage = () => {
     const { masterId } = useParams()
     const id = Number(masterId)
-    const today = getToday()
+    const today = useToday()
 
     const { data: schedule, isLoading: isScheduleLoading, error: scheduleError } = useVersionForDate(id, today)
     const { data: versions, isLoading: isVersionsLoading, error: versionsError } = useVersions(id)

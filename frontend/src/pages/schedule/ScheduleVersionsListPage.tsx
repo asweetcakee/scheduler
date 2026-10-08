@@ -1,12 +1,13 @@
 import { Link, useParams } from 'react-router-dom'
-import { formatDate, getToday } from '../../hooks/helper'
+import { formatDate } from '../../hooks/helper'
 import { useRemoveVersion, useVersions } from '../../hooks/schedule'
 import { classifyVersions, type ClassifiedVersion } from '../../utils/scheduleVersions'
+import { useToday } from '../../hooks/useToday'
 
 export const ScheduleVersionsListPage = () => {
     const { masterId } = useParams()
     const id = Number(masterId)
-    const today = getToday()
+    const today = useToday()
 
     const { data: versions, isLoading: isVersionsLoading, error: versionsError } = useVersions(id)
     const deleteMutation = useRemoveVersion(id)
