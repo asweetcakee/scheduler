@@ -3,7 +3,7 @@ import type { ScheduleVersionResponse } from '../types/schedule'
 
 type VersionStatus = 'historical' | 'current' | 'future'
 
-type ClassifiedVersion = ScheduleVersionResponse & {
+export type ClassifiedVersion = ScheduleVersionResponse & {
 	status: VersionStatus
     number: number | null
 }
@@ -45,7 +45,7 @@ export const classifyVersions = (versions: ScheduleVersionResponse[], today: ISO
 
 	return {
 		sorted,
-		historical,
+		historical: [...historical].reverse(),
 		current,
 		future,
 		next
