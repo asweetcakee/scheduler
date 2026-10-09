@@ -19,3 +19,9 @@ export const formatDate = (dateStr: ISODate): string => {
 		.replace(/\./g, '')
 		.replace(/\s?г$/, '')
 }
+
+export const dayBefore = (dateStr: ISODate): ISODate => {
+	const date = new Date(dateStr)
+	date.setUTCDate(date.getUTCDate() - 1)
+	return date.toISOString().slice(0, 10)
+}

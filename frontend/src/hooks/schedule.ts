@@ -20,11 +20,11 @@ export const useVersions = (masterId: ID) => {
     })
 }
 
-export const useVersionById = (masterId: ID, versionId: ID) => {
+export const useVersionById = (masterId: ID, versionId: ID, enabled = true) => {
     return useQuery({
         queryKey: ['schedule', masterId, 'version', versionId],
         queryFn: () => getVersionById(masterId, versionId),
-        enabled: Boolean(masterId) && Boolean(versionId)
+        enabled: enabled && Boolean(masterId) && Boolean(versionId)
     })
 }
 
