@@ -25,3 +25,9 @@ export const dayBefore = (dateStr: ISODate): ISODate => {
 	date.setUTCDate(date.getUTCDate() - 1)
 	return date.toISOString().slice(0, 10)
 }
+
+export const dayAfter = (dateStr: ISODate): ISODate => {
+	const date = new Date(dateStr)
+	date.setUTCDate(date.getUTCDate() + 1)
+	return date.toISOString().slice(0, 10)
+}

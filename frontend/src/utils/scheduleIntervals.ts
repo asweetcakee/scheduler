@@ -1,8 +1,8 @@
-import type { DayNumber } from '../components/masters/schedule/constants'
-import type { ScheduleIntervalResponse } from '../types/schedule'
+import { DAYS, type DayNumber } from '../components/masters/schedule/constants'
+import type { IntervalBody, ScheduleFormValues, UpdateVersionBody } from '../types/schedule'
 
-export const groupIntervalsByDay = (intervals: ScheduleIntervalResponse[]): Record<DayNumber, ScheduleIntervalResponse[]> => {
-    const grouped: Record<DayNumber, ScheduleIntervalResponse[]> = {
+export const groupIntervalsByDay = <T extends IntervalBody>(intervals: T[]): Record<DayNumber, T[]> => {
+    const grouped: Record<DayNumber, T[]> = {
         1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: []
     }
     for (const interval of intervals){
@@ -10,3 +10,8 @@ export const groupIntervalsByDay = (intervals: ScheduleIntervalResponse[]): Reco
     }
     return grouped
 }
+
+export const toBody = (values: ScheduleFormValues): UpdateVersionBody => ({
+    effective_from: values.effective_from,
+    intervals: DAYS.flatMap(day => values.intervals[day])
+})

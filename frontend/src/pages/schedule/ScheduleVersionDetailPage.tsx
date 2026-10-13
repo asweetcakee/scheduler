@@ -1,17 +1,20 @@
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useToday } from '../../hooks/useToday'
-import { useVersionById, useVersions } from '../../hooks/schedule'
+import { useUpdateVersion, useVersionById, useVersions } from '../../hooks/schedule'
 import { classifyVersions } from '../../utils/scheduleVersions'
 import { Badge } from '../../components/shared/Badge'
 import { InfoItem } from '../../components/masters/schedule/InfoItem'
 import { dayBefore } from '../../hooks/helper'
 import { WeekSchedule } from '../../components/masters/schedule/WeekSchedule'
+import { VersionEditor } from '../../components/masters/schedule/VersionEditor'
+import type { UpdateVersionBody } from '../../types/schedule'
 
 export const ScheduleVersionDetailPage = () => {
     const { masterId, versionId } = useParams()
     const masterIdNum = Number(masterId)
     const versionIdNum = Number(versionId)
     const today = useToday()
+    const navigate = useNavigate()
 
     const { data: versions, isLoading: isVersionsLoading, error: versionsError } = useVersions(masterIdNum)
 
@@ -24,11 +27,33 @@ export const ScheduleVersionDetailPage = () => {
     const needsDetails = Boolean(version) && version?.status !== 'current'
     const { data: schedule, isLoading: isScheduleLoading, error: scheduleError } = useVersionById(masterIdNum, versionIdNum, needsDetails)
 
+    const updateMutation = useUpdateVersion(masterIdNum, versionIdNum)
+
     if (isScheduleLoading || isVersionsLoading) return <p className='m-6'>Загрузка...</p>
     if (scheduleError || versionsError) return <p className='m-6'>Ошибка: {(scheduleError ?? versionsError)?.message}</p>
     if (!version) return <p className='m-6'>Версия не найдена</p>
     if (version.status === 'current') return <Navigate to={`/schedule/${masterIdNum}`} replace />
     if (!schedule) return null
+
+    const takenDates = sorted
+        .filter(version => version.id !== versionIdNum)
+        .map(version => version.effective_from)
+
+    const scheduleBody: UpdateVersionBody = {
+        effective_from: schedule.version.effective_from,
+        intervals: schedule.intervals.map(interval => ({
+            day_of_week: interval.day_of_week, 
+            starts_at: interval.starts_at, 
+            ends_at: interval.ends_at
+        }))
+    }
+
+    const onSubmit = (data: UpdateVersionBody) => {
+        updateMutation.mutate(
+            data, 
+            { onSuccess: () => navigate(`/schedule/${masterIdNum}`) }
+        )
+    }
 
     return (
         <section className='flex flex-col gap-2'>
@@ -49,8 +74,9 @@ export const ScheduleVersionDetailPage = () => {
                     {version.status === 'future' && (
                         <>
                             <div className='flex gap-2'>
-                                <span className='text-sm text-text-secondary'>Дата вступления новой</span>
-                                <input type='date' defaultValue={version.effective_from} />
+                                <span className='text-lg font-bold text-text-data'>Версия:</span>
+                                <Badge variant='info' text='Будущая' sizes='px-2 py-1'/>
+                                <Badge variant='danger' text='редактирование' sizes='px-2 py-1'/>
                             </div>
                             {current && <InfoItem label='Сейчас действует' date={current.effective_from} />}
                             {previous && previous.id !== current?.id && <InfoItem label='Предыдущая версия' date={previous.effective_from} />}
@@ -60,9 +86,16 @@ export const ScheduleVersionDetailPage = () => {
                 </div>
             </div>
             {version.status === 'historical' && <WeekSchedule intervals={schedule.intervals} />}
-            {version.status === 'future' && (
-                <p>temporary</p>
-            )}
+            {version.status === 'future' && 
+                <VersionEditor
+                    key={versionIdNum}
+                    initial={scheduleBody}
+                    takenDates={takenDates}
+                    today={today}
+                    isSubmitting={updateMutation.isPending}
+                    serverError={updateMutation.error?.message ?? null}
+                    onSubmit={onSubmit}
+                />}
         </section>
     )
 }

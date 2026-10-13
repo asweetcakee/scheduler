@@ -1,3 +1,4 @@
+import type { DayNumber } from '../components/masters/schedule/constants'
 import type { DayOfWeek, ID, ISODate, TimeFormat } from '../schemas/scheduleSchema'
 
 export type ScheduleVersionResponse = {
@@ -22,7 +23,7 @@ export type ScheduleResponseDetails = {
     intervals: ScheduleIntervalResponse[]
 }
 
-type IntervalBody = {
+export type IntervalBody = {
     day_of_week: DayOfWeek,
     starts_at: TimeFormat,
     ends_at: TimeFormat
@@ -36,4 +37,11 @@ export type CreateVersionBody = {
 export type UpdateVersionBody = {
     effective_from: ISODate,
     intervals: IntervalBody[]
+}
+
+type DayKey = `${DayNumber}`
+
+export type ScheduleFormValues = {
+    effective_from: ISODate
+    intervals: Record<DayKey, IntervalBody[]>
 }
