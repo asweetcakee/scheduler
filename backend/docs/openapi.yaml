@@ -18,6 +18,10 @@ tags:
     description: Masters CRUD endpoints
   - name: Services
     description: Services CRUD endpoints
+  - name: Appointments
+    description: Appointment lifecycle and availability endpoints
+  - name: Calendar
+    description: Daily salon calendar endpoint
 
 paths:
   /ping:
@@ -1768,6 +1772,425 @@ paths:
                   value:
                     error: "An unexpected error occurred"
 
+  /appointments:
+    post:
+      tags:
+        - Appointments
+      summary: Creates a new appointment
+      description: >
+        Creates an appointment using the submitted duration and price as the actual booked values.
+        The start must be in the future, the Master must be active, the appointment must fit
+        entirely inside one applicable working interval, and neither the Master nor the Client
+        may have another overlapping non-cancelled appointment. The backend calculates ends_at
+        and captures Client, Master, and Service snapshot data in the same transaction.
+      operationId: createAppointment
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppointmentRequest'
+      responses:
+        '201':
+          description: Created - Appointment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400':
+          description: Bad Request - Invalid request payload or timestamp format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Client, Master, or Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - Appointment overlaps an existing non-cancelled appointment for the same Master or Client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Appointment starts in the past, is outside working time, has an inactive Master, or has an invalid duration or price
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /appointments/available-masters:
+    get:
+      tags:
+        - Appointments
+      summary: Gets Masters available for a proposed appointment interval
+      description: >
+        Returns active Masters whose applicable schedule covers the entire proposed interval
+        and who have no conflicting non-cancelled appointment for the Master or Client. When
+        exclude_appointment_id is supplied, that appointment is excluded from both overlap checks.
+        This endpoint assists the Frontend and does not replace validation during create or update.
+      operationId: getAvailableMasters
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: starts_at
+          in: query
+          required: true
+          description: Proposed appointment start timestamp in RFC 3339 format with an explicit offset or Z
+          schema:
+            $ref: '#/components/schemas/AppointmentTimestampFormat'
+        - name: duration
+          in: query
+          required: true
+          description: Proposed appointment duration in minutes
+          schema:
+            $ref: '#/components/schemas/AppointmentDurationFormat'
+        - name: client_id
+          in: query
+          required: true
+          description: Client for whom the appointment is planned
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+        - name: exclude_appointment_id
+          in: query
+          required: false
+          description: Existing appointment to exclude from Master and Client overlap checks during editing
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: List of active Masters available for the proposed interval. May be an empty array
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailableMasterResponse'
+        '400':
+          description: Bad Request - Invalid query parameter format or value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Client not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - Invalid proposed start timestamp or duration, as listed in the detailed business-rules table
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Proposed interval or duration violates a business rule
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /appointments/{id}:
+    get:
+      tags:
+        - Appointments
+      summary: Gets an appointment by ID
+      description: >
+        Returns the appointment and its historical snapshot. Snapshot values are read from
+        appointment snapshot records, not from the current Client, Master, or Service records.
+      operationId: getAppointmentById
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Appointment identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '200':
+          description: OK - Appointment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400':
+          description: Bad Request - Invalid appointment ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    put:
+      tags:
+        - Appointments
+      summary: Updates an appointment
+      description: >
+        Only scheduled appointments dated today or in the future may be updated, and the target
+        date cannot be earlier than today. A target time earlier than the current time is allowed
+        when the target date is today. Schedule-fit validation is required when master_id, starts_at,
+        or duration changes; a price-only update must not fail solely because a later Schedule Version
+        no longer covers the existing booking. If master_id changes, the target Master must be active.
+        Snapshots refresh only for references whose IDs change. The backend recalculates ends_at.
+      operationId: updateAppointment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Appointment identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppointmentRequest'
+      responses:
+        '200':
+          description: OK - Appointment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400':
+          description: Bad Request - Invalid request payload, appointment ID, or timestamp format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Appointment, Client, Master, or Service not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - Appointment overlaps another non-cancelled appointment, or the target Master is inactive when assigning a different Master
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Appointment is completed or cancelled, is dated before today, the target date is earlier than today, or the resulting booking does not fit the applicable working interval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Appointments
+      summary: Physically deletes an appointment
+      description: >
+        Physical deletion is allowed only for scheduled appointments dated today or in the future.
+        Completed, cancelled, and past-dated appointments cannot be deleted. The lifecycle check
+        and deletion are performed atomically; deleting an eligible appointment also deletes its snapshot.
+      operationId: deleteAppointment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Appointment identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      responses:
+        '204':
+          description: No Content - Appointment deleted successfully
+        '400':
+          description: Bad Request - Invalid appointment ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Appointment not found, including when it has already been deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - Past-dated, completed, or cancelled appointments cannot be physically deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /appointments/{id}/status:
+    patch:
+      tags:
+        - Appointments
+      summary: Changes an appointment status
+      description: >
+        The only normal transitions are scheduled to completed and scheduled to cancelled.
+        Completion is rejected while starts_at is in the future. Cancellation is allowed for
+        future- or past-dated scheduled appointments. Status changes do not modify booking fields
+        or snapshots, and terminal statuses cannot be reversed through this endpoint.
+      operationId: updateAppointmentStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Appointment identifier
+          schema:
+            $ref: '#/components/schemas/IdFormat'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeAppointmentStatusRequest'
+      responses:
+        '200':
+          description: OK - Appointment status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400':
+          description: Bad Request - Invalid request payload or appointment ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - Appointment is already terminal or the requested status transition is not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Unprocessable Entity - Invalid target status or attempt to complete an appointment whose start time is in the future
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /calendar:
+    get:
+      tags:
+        - Calendar
+      summary: Gets the salon calendar for a date
+      description: >
+        Returns working intervals for the selected date and all appointments, including completed,
+        cancelled, and appointments outside working intervals. The backend calculates time_range
+        using Asia/Almaty and rounds only the visual range outward to 30-minute boundaries;
+        appointment timestamps are not rounded. If there are no working intervals and no appointments,
+        time_range is null and masters is an empty array.
+      operationId: getCalendarForDate
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          required: true
+          description: Calendar date in YYYY-MM-DD format, interpreted in the Asia/Almaty timezone
+          schema:
+            $ref: '#/components/schemas/DateFormat'
+      responses:
+        '200':
+          description: Calendar data for the selected date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalendarResponse'
+        '400':
+          description: Bad Request - Missing or invalid date query parameter, or invalid calendar date
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   securitySchemes:
       BearerAuth: 
@@ -1882,6 +2305,29 @@ components:
           items:
             $ref: '#/components/schemas/CreateMasterScheduleIntervalRequest'
 
+    CreateAppointmentRequest:
+      type: object
+      required:
+        - client_id
+        - master_id
+        - service_id
+        - starts_at
+        - duration
+        - price
+      properties:
+        client_id:
+          $ref: '#/components/schemas/IdFormat'
+        master_id:
+          $ref: '#/components/schemas/IdFormat'
+        service_id:
+          $ref: '#/components/schemas/IdFormat'
+        starts_at:
+          $ref: '#/components/schemas/AppointmentTimestampFormat'
+        duration:
+          $ref: '#/components/schemas/AppointmentDurationFormat'
+        price:
+          $ref: '#/components/schemas/AppointmentPriceFormat'
+
     IdFormat:
       type: integer
       format: int64
@@ -1941,6 +2387,39 @@ components:
       pattern: '^([01]\d|2[0-3]):[0-5]\d$'
       description: Time in HH:mm format
       example: "10:00"
+
+    AppointmentTimestampFormat:
+      type: string
+      format: date-time
+      description: RFC 3339 timestamp with an explicit UTC offset or Z
+      examples:
+        - "2026-10-15T10:15:00+05:00"
+        - "2026-10-15T05:15:00Z"
+
+    AppointmentPriceFormat:
+      type: number
+      minimum: 0
+      multipleOf: 0.01
+      description: Actual appointment price as a JSON number, with up to two decimal places
+      examples:
+        - 7000.00
+
+    AppointmentDurationFormat:
+      type: integer
+      minimum: 1
+      description: Actual appointment duration in minutes
+      examples:
+        - 75
+
+    AppointmentStatusFormat:
+      type: string
+      enum:
+        - scheduled
+        - completed
+        - cancelled
+      description: Appointment lifecycle status
+      examples:
+        - scheduled
 
     ClientResponse:
       type: object
@@ -2074,6 +2553,260 @@ components:
           items:
             $ref: '#/components/schemas/MasterScheduleIntervalResponse'
 
+    AppointmentSnapshotClientResponse:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          type: string
+          description: Client name captured when the appointment was booked
+          examples:
+            - "Алия"
+        phone:
+          type: string
+          description: Client phone captured when the appointment was booked
+          examples:
+            - "7010000000"
+
+    AppointmentSnapshotMasterResponse:
+      type: object
+      required:
+        - name
+        - phone
+        - active_at_booking
+      properties:
+        name:
+          type: string
+          description: Master name captured when the appointment was booked
+          examples:
+            - "Жанар"
+        phone:
+          type: string
+          description: Master phone captured when the appointment was booked
+          examples:
+            - "7070000000"
+        active_at_booking:
+          type: boolean
+          description: Whether the Master was active when the appointment was booked
+          examples:
+            - true
+
+    AppointmentSnapshotServiceResponse:
+      type: object
+      required:
+        - name
+        - default_price
+        - default_duration
+      properties:
+        name:
+          type: string
+          description: Service name captured when the appointment was booked
+          examples:
+            - "Стрижка женская"
+        default_price:
+          $ref: '#/components/schemas/AppointmentPriceFormat'
+        default_duration:
+          $ref: '#/components/schemas/AppointmentDurationFormat'
+
+    AppointmentSnapshotResponse:
+      type: object
+      required:
+        - client
+        - master
+        - service
+      description: Historical Client, Master, and Service data captured for this appointment
+      properties:
+        client:
+          $ref: '#/components/schemas/AppointmentSnapshotClientResponse'
+        master:
+          $ref: '#/components/schemas/AppointmentSnapshotMasterResponse'
+        service:
+          $ref: '#/components/schemas/AppointmentSnapshotServiceResponse'
+
+    AppointmentResponse:
+      type: object
+      required:
+        - id
+        - client_id
+        - master_id
+        - service_id
+        - starts_at
+        - ends_at
+        - duration
+        - price
+        - status
+        - created_at
+        - snapshot
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        client_id:
+          $ref: '#/components/schemas/IdFormat'
+        master_id:
+          $ref: '#/components/schemas/IdFormat'
+        service_id:
+          $ref: '#/components/schemas/IdFormat'
+        starts_at:
+          $ref: '#/components/schemas/AppointmentTimestampFormat'
+        ends_at:
+          allOf:
+            - $ref: '#/components/schemas/AppointmentTimestampFormat'
+          description: Server-calculated appointment end timestamp
+        duration:
+          $ref: '#/components/schemas/AppointmentDurationFormat'
+        price:
+          $ref: '#/components/schemas/AppointmentPriceFormat'
+        status:
+          $ref: '#/components/schemas/AppointmentStatusFormat'
+        created_at:
+          allOf:
+            - $ref: '#/components/schemas/AppointmentTimestampFormat'
+          description: Server-generated creation timestamp
+        snapshot:
+          $ref: '#/components/schemas/AppointmentSnapshotResponse'
+
+    AvailableMasterResponse:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name:
+          type: string
+          description: Master name
+          examples:
+            - "Жанар"
+
+    CalendarTimeRangeResponse:
+      type: object
+      required:
+        - starts_at
+        - ends_at
+      properties:
+        starts_at:
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+        ends_at:
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+
+    CalendarWorkingIntervalResponse:
+      type: object
+      required:
+        - starts_at
+        - ends_at
+      properties:
+        starts_at:
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+        ends_at:
+          $ref: '#/components/schemas/ScheduleTimeFormat'
+
+    CalendarAppointmentResponse:
+      type: object
+      required:
+        - id
+        - client_id
+        - service_id
+        - client_name
+        - service_name
+        - starts_at
+        - ends_at
+        - duration
+        - price
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        client_id:
+          $ref: '#/components/schemas/IdFormat'
+        service_id:
+          $ref: '#/components/schemas/IdFormat'
+        client_name:
+          type: string
+          description: Historical Client name taken from the appointment snapshot
+          examples:
+            - "Алия"
+        service_name:
+          type: string
+          description: Historical Service name taken from the appointment snapshot
+          examples:
+            - "Стрижка женская"
+        starts_at:
+          $ref: '#/components/schemas/AppointmentTimestampFormat'
+        ends_at:
+          $ref: '#/components/schemas/AppointmentTimestampFormat'
+        duration:
+          $ref: '#/components/schemas/AppointmentDurationFormat'
+        price:
+          $ref: '#/components/schemas/AppointmentPriceFormat'
+        status:
+          $ref: '#/components/schemas/AppointmentStatusFormat'
+
+    CalendarMasterResponse:
+      type: object
+      required:
+        - id
+        - name
+        - active
+        - working_intervals
+        - appointments
+      properties:
+        id:
+          $ref: '#/components/schemas/IdFormat'
+        name:
+          type: string
+          description: Master name
+          examples:
+            - "Жанар"
+        active:
+          type: boolean
+          description: Whether the Master is currently active
+          examples:
+            - true
+        working_intervals:
+          type: array
+          description: Working intervals applicable to the requested calendar date
+          items:
+            $ref: '#/components/schemas/CalendarWorkingIntervalResponse'
+        appointments:
+          type: array
+          description: All appointments for the Master on the requested date, including cancelled appointments and appointments outside working intervals
+          items:
+            $ref: '#/components/schemas/CalendarAppointmentResponse'
+
+    CalendarResponse:
+      type: object
+      required:
+        - date
+        - timezone
+        - time_range
+        - masters
+      properties:
+        date:
+          $ref: '#/components/schemas/DateFormat'
+        timezone:
+          type: string
+          description: Timezone used to interpret the salon-local calendar date
+          example: Asia/Almaty
+        time_range:
+          type: [object, "null"]
+          description: Visual time range rounded to 30-minute boundaries, or null when the date has no working intervals and no appointments
+          properties:
+            starts_at:
+              $ref: '#/components/schemas/ScheduleTimeFormat'
+            ends_at:
+              $ref: '#/components/schemas/ScheduleTimeFormat'
+          required:
+            - starts_at
+            - ends_at
+        masters:
+          type: array
+          description: Masters who work on the selected date or have appointments on that date
+          items:
+            $ref: '#/components/schemas/CalendarMasterResponse'
+
     UpdateClientRequest:
       type: object
       minProperties: 1
@@ -2142,6 +2875,30 @@ components:
           examples:
             - "18:00:00"
 
+    UpdateAppointmentRequest:
+      type: object
+      description: Full replacement of the appointment booking fields; server-controlled fields are omitted
+      required:
+        - client_id
+        - master_id
+        - service_id
+        - starts_at
+        - duration
+        - price
+      properties:
+        client_id:
+          $ref: '#/components/schemas/IdFormat'
+        master_id:
+          $ref: '#/components/schemas/IdFormat'
+        service_id:
+          $ref: '#/components/schemas/IdFormat'
+        starts_at:
+          $ref: '#/components/schemas/AppointmentTimestampFormat'
+        duration:
+          $ref: '#/components/schemas/AppointmentDurationFormat'
+        price:
+          $ref: '#/components/schemas/AppointmentPriceFormat'
+
     ReplaceMasterScheduleVersionRequest:
       type: object
       required:
@@ -2155,6 +2912,18 @@ components:
           description: Complete list of schedule working intervals. Replaces all existing intervals for this version
           items:
             $ref: '#/components/schemas/CreateMasterScheduleIntervalRequest'
+
+    ChangeAppointmentStatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          description: Target status. Allowed values are completed and cancelled; other values return 422
+          examples:
+            - completed
+            - cancelled
 
     ErrorResponse:
       type: object
