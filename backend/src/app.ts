@@ -8,6 +8,7 @@ import healthRouter from './routes/health.js'
 import pingRouter from './routes/ping.js'
 import clientRouter from './routes/clients.js'
 import masterRouter from './routes/masters.js'
+import serviceRouter from './routes/services.js'
 import { notFound } from './middlewares/notFound.js'
 import { errorHandler } from './middlewares/errorHandler.js'
 
@@ -22,6 +23,7 @@ app.use('/api', pingRouter)
 app.use('/api', healthRouter)
 app.use('/api/clients', clientRouter)
 app.use('/api/masters', masterRouter)
+app.use('/api/services', serviceRouter)
 
 app.use(notFound)
 app.use(errorHandler)

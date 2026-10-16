@@ -1,22 +1,43 @@
-import { Link } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 
 export const Sidebar = () => {
+    const baseStyle = `block w-full px-4 py-2 border-0 rounded-lg`
+    const getNavLinkClass = ({ isActive }: { isActive: boolean }) => {
+        return `${baseStyle} ${
+            isActive
+            ? `bg-primary hover:bg-primary-hover text-text-alt shadow-lg shadow-primary/20 transition-colors`
+            : `bg-page hover:bg-icon-bg text-text hover:text-text-alt transition-colors`
+        }`
+    }
+    
     return(
-        <div className='flex bg-surface min-w-50'>
+        <div className='flex bg-surface min-w-50 shadow-lg shadow-primary/20 z-1'>
             <div className='mt-6 mx-4 flex-1'>
-                <div className='flex flex-col gap-1'>
-                    <Link 
+                <div className='flex flex-col gap-2'>
+                    <NavLink 
                         to='/clients' 
-                        className='block w-full bg-primary hover:bg-primary-hover text-text-alt px-4 py-2 border-0 rounded-lg transition-colors'
+                        className={getNavLinkClass}
                     >
                         Клиенты
-                    </Link>
-                    <Link 
+                    </NavLink>
+                    <NavLink 
                         to='/masters' 
-                        className='block w-full bg-primary hover:bg-primary-hover text-text-alt px-4 py-2 border-0 rounded-lg transition-colors'
+                        className={getNavLinkClass}
                     >
                         Мастера
-                    </Link>
+                    </NavLink>
+                    <NavLink 
+                        to='/schedule' 
+                        className={getNavLinkClass}
+                    >
+                        Расписание
+                    </NavLink>
+                    <NavLink 
+                        to='/services' 
+                        className={getNavLinkClass}
+                    >
+                        Услуги
+                    </NavLink>
                 </div>
             </div>
         </div>

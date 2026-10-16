@@ -15,6 +15,10 @@
     --color-danger: #F3797E;
     --color-danger-hover: #F59095;
 
+    /* Success action */
+    --color-success: #79C98A;
+    --color-success-hover: #91D49F;
+
     /* Icon-on-color combo */
     --color-icon-bg: #7EBBFF;
 

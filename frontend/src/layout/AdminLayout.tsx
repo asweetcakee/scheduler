@@ -5,7 +5,7 @@ export const AdminLayout = () => {
     return(
         <div className='flex min-h-screen'>
             <Sidebar />
-            <main className='flex-1 bg-page'>
+            <main className='flex-1 min-w-0 bg-page'>
                 <Outlet />
             </main>
         </div>
