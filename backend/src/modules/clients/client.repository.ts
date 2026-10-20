@@ -1,7 +1,9 @@
+import type { PoolClient } from 'pg'
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { isUniqueViolation } from '../../errors/pgErrorCodes.js'
-import type { UpdateClientInput } from '../../schemas/clientSchema.js'
+import type { ClientName, ClientPhone, ID, UpdateClientInput } from '../../schemas/clientSchema.js'
+import { NotFoundError } from '../../errors/NotFoundError.js'
 
 type ClientRow = {
     id: number,
@@ -46,6 +48,22 @@ export const findById = async (id: number): Promise<ClientRow | null> => {
         `, [id]
     )
 
+    return result.rows[0] ?? null
+}
+
+export type ClientForBooking = {
+    name: ClientName,
+    phone: ClientPhone
+}
+
+export const findClientByIdForBooking= async (client: PoolClient, id: ID): Promise<ClientForBooking | null> => {
+    const result = await client.query<ClientForBooking>(
+        `
+        SELECT name, phone
+        FROM clients
+        WHERE id = $1
+        `, [id]
+    )
     return result.rows[0] ?? null
 }
 

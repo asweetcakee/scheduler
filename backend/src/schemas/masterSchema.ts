@@ -5,17 +5,20 @@ const idParam = z
     .number()
     .int()
     .positive({ error: 'ID must be a positive integer' })
+export type ID = z.infer<typeof idParam>
 
 const nameField = z.string()
     .trim()
     .min(1, { error: 'Name is required' })
     .max(200, { error: 'Name is too long' })
+export type MasterName = z.infer<typeof nameField>
 
 const phoneField = z.string()
     .trim()
     .regex(/^\d{10}$/, {
         error: 'Phone must be exactly 10 digits',
     })
+export type MasterPhone = z.infer<typeof phoneField>
 
 const activeField = z.boolean()
 

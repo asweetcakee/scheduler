@@ -1,7 +1,8 @@
+import type { PoolClient } from 'pg'
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { isForeignKeyViolation, isUniqueViolation } from '../../errors/pgErrorCodes.js'
-import type { UpdateMasterInput } from '../../schemas/masterSchema.js'
+import type { ID, MasterName, MasterPhone, UpdateMasterInput } from '../../schemas/masterSchema.js'
 
 type MasterRow = {
     id: number,
@@ -52,6 +53,23 @@ export const findById = async (id: number): Promise<MasterRow | null> => {
         SELECT id, name, phone, active
         FROM masters
         WHERE id = $1
+        `, [id]
+    )
+    return result.rows[0] ?? null
+}
+
+export type MasterForBooking = {
+    name: MasterName,
+    phone: MasterPhone,
+    active: boolean
+}
+export const lockMasterByIdForBooking = async (client: PoolClient, id: ID): Promise<MasterForBooking | null> => {
+    const result = await client.query<MasterForBooking>(
+        `
+        SELECT name, phone, active
+        FROM masters
+        WHERE id = $1
+        FOR NO KEY UPDATE
         `, [id]
     )
     return result.rows[0] ?? null

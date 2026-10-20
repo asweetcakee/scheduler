@@ -1,8 +1,11 @@
+import type { PoolClient } from 'pg'
 import { pool } from '../../db/pool.js'
 import { ConflictError } from '../../errors/ConflictError.js'
+import { NotFoundError } from '../../errors/NotFoundError.js'
 import { isCheckViolation, isInvalidTextRepresentation, isUniqueViolation } from '../../errors/pgErrorCodes.js'
 import { UnprocessableEntityError } from '../../errors/UnprocessableEntityError.js'
-import type { UpdateServiceInput } from '../../schemas/serviceSchema.js'
+import type { ID, ServiceName, UpdateServiceInput } from '../../schemas/serviceSchema.js'
+import type { Duration, Price } from '../../schemas/appointmentSchema.js'
 
 type ServiceRow = {
     id: number,
@@ -58,6 +61,23 @@ export const findById = async(id: number): Promise<ServiceRow | null> => {
     const result = await pool.query<ServiceRow>(
         `
         SELECT id, name, price, duration
+        FROM services
+        WHERE id = $1
+        `, [id]
+    )
+    return result.rows[0] ?? null
+}
+
+export type ServiceForBooking = {
+    name: ServiceName,
+    price: Price,
+    duration: Duration
+}
+
+export const findServiceByIdForBooking = async (client: PoolClient, id: ID): Promise<ServiceForBooking | null> => {
+    const result = await client.query<ServiceForBooking>(
+        `
+        SELECT name, price, duration
         FROM services
         WHERE id = $1
         `, [id]

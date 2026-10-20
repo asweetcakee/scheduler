@@ -5,11 +5,13 @@ const idParam = z
     .number()
     .int()
     .positive({ error: 'ID must be a positive integer' })
+export type ID = z.infer<typeof idParam>
 
 const nameField = z.string()
     .trim()
     .min(1, { error: 'Service name is required' })
     .max(200, { error: 'Service name is too long' })
+export type ServiceName = z.infer<typeof nameField>
 
 const priceField = z.string()
     .trim()
