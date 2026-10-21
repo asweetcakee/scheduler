@@ -1,5 +1,5 @@
 import type { Duration, ID, Price, TimeStampTZ } from '../../schemas/appointmentSchema.js'
-import type { AppointmentRow, AppointmentStatus, Snapshot, SnapshotRow } from './appointments.repository.js'
+import type { AppointmentStatus, AppointmentWithSnapshotRow, Snapshot, SnapshotRow } from './appointments.repository.js'
 
 export type AppointmentResponse = {
     id: ID
@@ -15,34 +15,31 @@ export type AppointmentResponse = {
     snapshot: Snapshot
 }
 
-export const toAppointmentResponse = (
-    appointment: AppointmentRow,
-    snapshot: SnapshotRow
-): AppointmentResponse => ({
-    id: appointment.id,
-    client_id: appointment.client_id,
-    master_id: appointment.master_id,
-    service_id: appointment.service_id,
-    starts_at: appointment.starts_at.toISOString(),
-    ends_at: appointment.ends_at.toISOString(),
-    duration: appointment.duration,
-    price: appointment.price,
-    status: appointment.status,
-    created_at: appointment.created_at.toISOString(),
+export const toAppointmentResponse = (row: AppointmentWithSnapshotRow): AppointmentResponse => ({
+    id: row.id,
+    client_id: row.client_id,
+    master_id: row.master_id,
+    service_id: row.service_id,
+    starts_at: row.starts_at.toISOString(),
+    ends_at: row.ends_at.toISOString(),
+    duration: row.duration,
+    price: row.price,
+    status: row.status,
+    created_at: row.created_at.toISOString(),
     snapshot: {
         client: {
-            name: snapshot.client_name,
-            phone: snapshot.client_phone
+            name: row.client_name,
+            phone: row.client_phone
         },
         master: {
-            name: snapshot.master_name,
-            phone: snapshot.master_phone,
-            active_at_booking: snapshot.master_active_at_booking
+            name: row.master_name,
+            phone: row.master_phone,
+            active_at_booking: row.master_active_at_booking
         },
         service: {
-            name: snapshot.service_name,
-            default_price: snapshot.service_default_price,
-            default_duration: snapshot.service_default_duration
+            name: row.service_name,
+            default_price: row.service_default_price,
+            default_duration: row.service_default_duration
         }
     }
 })

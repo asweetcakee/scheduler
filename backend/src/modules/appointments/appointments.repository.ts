@@ -7,6 +7,7 @@ import type { ServiceName } from '../../schemas/serviceSchema.js'
 import { getConstraintName, isExclusionViolation, isForeignKeyViolation } from '../../errors/pgErrorCodes.js'
 import { ConflictError } from '../../errors/ConflictError.js'
 import { NotFoundError } from '../../errors/NotFoundError.js'
+import { pool } from '../../db/pool.js'
 
 type ClientSnapshot = {
     name: ClientName,
@@ -56,6 +57,8 @@ export type AppointmentRow = {
     status: AppointmentStatus,
     created_at: Date
 }
+
+export type AppointmentWithSnapshotRow = AppointmentRow & SnapshotRow
 
 export type WorkingInterval = {
     starts_at: string,
@@ -161,4 +164,21 @@ export const createAppointment = async (
         }
         throw error
     }
+}
+
+export const findAppointmentById = async(id: ID): Promise<AppointmentWithSnapshotRow | null> => {
+    const result = await pool.query<AppointmentWithSnapshotRow>(
+        `
+        SELECT
+            a.id, a.client_id, a.master_id, a.service_id, 
+            a.starts_at, a.ends_at, a.duration, a.price, a.status, a.created_at,
+            s.client_name, s.client_phone,
+            s.master_name, s.master_phone, s.master_active_at_booking,
+            s.service_name, s.service_default_price, s.service_default_duration
+        FROM appointments a
+        JOIN appointment_snapshots s ON s.appointment_id = a.id
+        WHERE a.id = $1
+        `, [id]
+    )
+    return result.rows[0] ?? null
 }

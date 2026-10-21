@@ -6,6 +6,12 @@ const idField = z
     .positive({ error: 'ID должен быть положительным целым числом' })
 export type ID = z.infer<typeof idField>
 
+const idParam = z
+    .coerce
+    .number()
+    .int()
+    .positive({ error: 'ID должен быть положительным целым числом' })
+
 const timeStampField = z.iso
     .datetime({
         offset: true,
@@ -37,3 +43,8 @@ export const createAppointmentBodySchema = z.strictObject({
     price: priceField
 })
 export type CreateAppointmentBody = z.infer<typeof createAppointmentBodySchema>
+
+export const appointmentParamsSchema = z.strictObject({
+    id: idParam
+})
+export type AppointmentParams = z.infer<typeof appointmentParamsSchema>

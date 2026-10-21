@@ -1,7 +1,7 @@
 import { withTransaction } from '../../db/withTransaction.js'
 import { NotFoundError } from '../../errors/NotFoundError.js'
 import { UnprocessableEntityError } from '../../errors/UnprocessableEntityError.js'
-import type { CreateAppointmentBody, Duration, TimeStampTZ } from '../../schemas/appointmentSchema.js'
+import type { CreateAppointmentBody, Duration, ID, TimeStampTZ } from '../../schemas/appointmentSchema.js'
 import type { DayOfWeek, ISODate } from '../../schemas/scheduleSchema.js'
 import { findClientByIdForBooking } from '../clients/client.repository.js'
 import { lockMasterByIdForBooking } from '../masters/master.repository.js'
@@ -127,5 +127,14 @@ export const createAppointment = async (
         }
     )
 
-    return toAppointmentResponse(appointment, snapshot)
+    return toAppointmentResponse({
+        ...appointment,
+        ...snapshot
+    })
+}
+
+export const findAppointment = async(appointmentId: ID): Promise<AppointmentResponse> => {
+    const appointment = await appointmentRepository.findAppointmentById(appointmentId)
+    if (!appointment) throw new NotFoundError(`Appointment with id ${appointmentId} not found`)
+    return toAppointmentResponse(appointment)
 }
