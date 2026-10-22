@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg'
-import type { CreateAppointmentBody, Duration, ID, Price, TimeStampTZ } from '../../schemas/appointmentSchema.js'
+import type { AppointmentBody, Duration, ID, Price, TimeStampTZ } from '../../schemas/appointmentSchema.js'
 import type { ClientName, ClientPhone } from '../../schemas/clientSchema.js'
 import type { MasterName, MasterPhone } from '../../schemas/masterSchema.js'
 import type { DayOfWeek, ISODate } from '../../schemas/scheduleSchema.js'
@@ -32,6 +32,8 @@ export type Snapshot = {
     service: ServiceSnapshot
 }
 
+export type SnapshotPatch = Partial<Snapshot>
+
 export type SnapshotRow = {
     client_name: ClientName,
     client_phone: ClientPhone,
@@ -59,6 +61,53 @@ export type AppointmentRow = {
 }
 
 export type AppointmentWithSnapshotRow = AppointmentRow & SnapshotRow
+
+type AppointmentTargets = {
+    client_id: ID,
+    master_id: ID,
+    service_id: ID
+}
+
+const APPOINTMENT_COLUMNS = `
+    id, client_id, master_id, service_id,
+    starts_at, ends_at, duration, price, status, created_at
+`
+
+const JOINED_SELECT = `
+    SELECT
+        a.id, a.client_id, a.master_id, a.service_id,
+        a.starts_at, a.ends_at, a.duration, a.price, a.status, a.created_at,
+        s.client_name, s.client_phone,
+        s.master_name, s.master_phone, s.master_active_at_booking,
+        s.service_name, s.service_default_price, s.service_default_duration
+    FROM appointments a
+    JOIN appointment_snapshots s ON s.appointment_id = a.id
+    WHERE a.id = $1
+`
+
+const toWriteError = (error: unknown, data: AppointmentTargets): unknown => {
+    if (isExclusionViolation(error)) {
+        switch (getConstraintName(error)) {
+            case 'appointments_master_no_overlap':
+                return new ConflictError('Master already has an appointment at this time')
+            case 'appointments_client_no_overlap':
+                return new ConflictError('Client already has an appointment at this time')
+            default:
+                return new ConflictError('Appointment overlaps with an existing one')
+        }
+    }
+    if (isForeignKeyViolation(error)) {
+        switch (getConstraintName(error)) {
+            case 'appointments_client_id_fkey':
+                return new NotFoundError(`Client with id ${data.client_id} not found`)
+            case 'appointments_master_id_fkey':
+                return new NotFoundError(`Master with id ${data.master_id} not found`)
+            case 'appointments_service_id_fkey':
+                return new NotFoundError(`Service with id ${data.service_id} not found`)
+        }
+    }
+    return error
+}
 
 export type WorkingInterval = {
     starts_at: string,
@@ -125,7 +174,7 @@ export const createAppointmentSnapshot = async(
 
 export const createAppointment = async (
     client: PoolClient,
-    data: CreateAppointmentBody,
+    data: AppointmentBody,
     ends_at: TimeStampTZ
 ): Promise<AppointmentRow> => {
     try {
@@ -142,43 +191,88 @@ export const createAppointment = async (
         }
         return row
     } catch (error) {
-        if (isExclusionViolation(error)) {
-            switch (getConstraintName(error)) {
-                case 'appointments_master_no_overlap':
-                    throw new ConflictError('Master already has an appointment at this time')
-                case 'appointments_client_no_overlap':
-                    throw new ConflictError('Client already has an appointment at this time')
-                default:
-                    throw new ConflictError('Appointment overlaps with an existing one')
-            }
-        }
-        if (isForeignKeyViolation(error)) {
-            switch (getConstraintName(error)) {
-                case 'appointments_client_id_fkey':
-                    throw new NotFoundError(`Client with id ${data.client_id} not found`)
-                case 'appointments_master_id_fkey':
-                    throw new NotFoundError(`Master with id ${data.master_id} not found`)
-                case 'appointments_service_id_fkey':
-                    throw new NotFoundError(`Service with id ${data.service_id} not found`)
-            }
-        }
-        throw error
+        throw toWriteError(error, data)
     }
 }
 
 export const findAppointmentById = async(id: ID): Promise<AppointmentWithSnapshotRow | null> => {
-    const result = await pool.query<AppointmentWithSnapshotRow>(
+    const result = await pool.query<AppointmentWithSnapshotRow>(JOINED_SELECT, [id])
+    return result.rows[0] ?? null
+}
+
+export const findAppointmentByIdTx = async(client: PoolClient, id: ID): Promise<AppointmentWithSnapshotRow | null> => {
+    const result = await client.query<AppointmentWithSnapshotRow>(JOINED_SELECT, [id])
+    return result.rows[0] ?? null
+}
+
+export const lockAppointmentById = async(client: PoolClient, id: ID): Promise<AppointmentRow | null> => {
+    const result = await client.query<AppointmentRow>(
         `
-        SELECT
-            a.id, a.client_id, a.master_id, a.service_id, 
-            a.starts_at, a.ends_at, a.duration, a.price, a.status, a.created_at,
-            s.client_name, s.client_phone,
-            s.master_name, s.master_phone, s.master_active_at_booking,
-            s.service_name, s.service_default_price, s.service_default_duration
-        FROM appointments a
-        JOIN appointment_snapshots s ON s.appointment_id = a.id
-        WHERE a.id = $1
+        SELECT ${APPOINTMENT_COLUMNS}
+        FROM appointments
+        WHERE id = $1
+        FOR NO KEY UPDATE
         `, [id]
     )
     return result.rows[0] ?? null
+}
+
+export const updateAppointment = async(
+    client: PoolClient,
+    id: ID,
+    data: AppointmentBody,
+    ends_at: TimeStampTZ
+): Promise<AppointmentRow> => {
+    try {
+        const result = await client.query<AppointmentRow>(
+            `
+            UPDATE appointments
+            SET client_id = $2,
+                master_id = $3,
+                service_id = $4,
+                starts_at = $5,
+                ends_at = $6,
+                duration = $7,
+                price = $8
+            WHERE id = $1
+            RETURNING ${APPOINTMENT_COLUMNS}
+            `, [id, data.client_id, data.master_id, data.service_id, data.starts_at, ends_at, data.duration, data.price]
+        )
+        const row = result.rows[0]
+        if (!row) {
+            throw new Error('Appointment update did not return a row')
+        }
+        return row
+    } catch (error) {
+        throw toWriteError(error, data)
+    }
+}
+
+export const updateAppointmentSnapshot = async(
+    client: PoolClient,
+    appointment_id: ID,
+    patch: SnapshotPatch
+): Promise<void> => {
+    const result = await client.query(
+        `
+        UPDATE appointment_snapshots
+        SET client_name = COALESCE($2::varchar, client_name),
+            client_phone = COALESCE($3::varchar, client_phone),
+            master_name = COALESCE($4::varchar, master_name),
+            master_phone = COALESCE($5::varchar, master_phone),
+            master_active_at_booking = COALESCE($6::boolean, master_active_at_booking),
+            service_name = COALESCE($7::varchar, service_name),
+            service_default_price = COALESCE($8::numeric, service_default_price),
+            service_default_duration = COALESCE($9::integer, service_default_duration)
+        WHERE appointment_id = $1
+        `, [
+            appointment_id,
+            patch.client?.name ?? null, patch.client?.phone ?? null,
+            patch.master?.name ?? null, patch.master?.phone ?? null, patch.master?.active_at_booking ?? null,
+            patch.service?.name ?? null, patch.service?.default_price ?? null, patch.service?.default_duration ?? null
+        ]
+    )
+    if ((result.rowCount ?? 0) === 0) {
+        throw new Error('Snapshot update affected no rows')
+    }
 }

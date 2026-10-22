@@ -34,7 +34,7 @@ const priceField = z
     })
 export type Price = z.infer<typeof priceField>
 
-export const createAppointmentBodySchema = z.strictObject({
+export const appointmentBodySchema = z.strictObject({
     client_id: idField,
     master_id: idField,
     service_id: idField,
@@ -42,7 +42,7 @@ export const createAppointmentBodySchema = z.strictObject({
     duration: durationField,
     price: priceField
 })
-export type CreateAppointmentBody = z.infer<typeof createAppointmentBodySchema>
+export type AppointmentBody = z.infer<typeof appointmentBodySchema>
 
 export const appointmentParamsSchema = z.strictObject({
     id: idParam
