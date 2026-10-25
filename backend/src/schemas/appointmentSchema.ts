@@ -34,6 +34,10 @@ const priceField = z
     })
 export type Price = z.infer<typeof priceField>
 
+const statusField = z.enum(['completed', 'cancelled'], {
+        error: 'Допустимые значения status: \'completed\', \'cancelled\''
+    })
+
 export const appointmentBodySchema = z.strictObject({
     client_id: idField,
     master_id: idField,
@@ -48,3 +52,8 @@ export const appointmentParamsSchema = z.strictObject({
     id: idParam
 })
 export type AppointmentParams = z.infer<typeof appointmentParamsSchema>
+
+export const changeStatusBodySchema = z.strictObject({
+    status: statusField
+})
+export type ChangeStatusBody = z.infer<typeof changeStatusBodySchema>

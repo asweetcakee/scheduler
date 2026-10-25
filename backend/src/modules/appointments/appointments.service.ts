@@ -2,13 +2,14 @@ import type { PoolClient } from 'pg'
 import { withTransaction } from '../../db/withTransaction.js'
 import { NotFoundError } from '../../errors/NotFoundError.js'
 import { UnprocessableEntityError } from '../../errors/UnprocessableEntityError.js'
-import type { AppointmentBody, ID } from '../../schemas/appointmentSchema.js'
+import type { AppointmentBody, ChangeStatusBody, ID } from '../../schemas/appointmentSchema.js'
 import { findClientByIdForBooking } from '../clients/client.repository.js'
 import { lockMasterByIdForBooking } from '../masters/master.repository.js'
 import { findServiceByIdForBooking } from '../services/service.repository.js'
 import { toAppointmentResponse, type AppointmentResponse } from './appointment.mapper.js'
 import * as appointmentRepository from './appointments.repository.js'
 import { calculateEndsAt, timeToMinutes, toBusinessLocal, type BusinessLocal } from './helper.js'
+import { ConflictError } from '../../errors/ConflictError.js'
 
 // Validates that the appointment fits entirely within a single working interval for a master 422
 // Shared between 'create' and 'update'
@@ -120,9 +121,9 @@ export const updateAppointment = async (
             if (!existing) {
                 throw new NotFoundError(`Appointment with id ${appointmentId} not found`)
             }
-            // 422
+            // 409, 422
             if (existing.status !== 'scheduled') {
-                throw new UnprocessableEntityError('Only scheduled appointments can be updated')
+                throw new ConflictError('Only scheduled appointments can be updated')
             }
             if (toBusinessLocal(existing.starts_at).date < today) {
                 throw new UnprocessableEntityError('Appointments dated before today cannot be updated')
@@ -192,6 +193,41 @@ export const updateAppointment = async (
             if (masterChanged || clientChanged || serviceChanged) {
                 await appointmentRepository.updateAppointmentSnapshot(client, appointmentId, snapshotPatch)
             }
+
+            const updated = await appointmentRepository.findAppointmentByIdTx(client, appointmentId)
+            if (!updated) {
+                throw new Error('Updated appointment was not found')
+            }
+            return updated
+        }
+    )
+
+    return toAppointmentResponse(row)
+}
+
+export const changeAppointmentStatus = async (
+    appointmentId: ID,
+    status: ChangeStatusBody['status']
+): Promise<AppointmentResponse> => {
+    const row = await withTransaction(
+        async client => {
+            // 404
+            const existing = await appointmentRepository.lockAppointmentById(client, appointmentId)
+            if (!existing) {
+                throw new NotFoundError(`Appointment with id ${appointmentId} not found`)
+            }
+
+            // 409
+            if (existing.status !== 'scheduled') {
+                throw new ConflictError(`Appointment is already ${existing.status}`)
+            }
+
+            // 422
+            if (status === 'completed' && existing.starts_at.getTime() > Date.now()) {
+                throw new UnprocessableEntityError('Cannot complete an appointment that has not started yet')
+            }
+
+            await appointmentRepository.updateAppointmentStatus(client, appointmentId, status)
 
             const updated = await appointmentRepository.findAppointmentByIdTx(client, appointmentId)
             if (!updated) {

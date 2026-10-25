@@ -276,3 +276,20 @@ export const updateAppointmentSnapshot = async(
         throw new Error('Snapshot update affected no rows')
     }
 }
+
+export const updateAppointmentStatus = async (
+    client: PoolClient,
+    id: ID,
+    status: Exclude<AppointmentStatus, 'scheduled'>
+): Promise<void> => {
+    const result = await client.query(
+        `
+        UPDATE appointments
+        SET status = $2
+        WHERE id = $1
+        `, [id, status]
+    )
+    if ((result.rowCount ?? 0) === 0) {
+        throw new Error('Status update affected no rows')
+    }
+}
