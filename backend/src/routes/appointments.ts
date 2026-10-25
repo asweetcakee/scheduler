@@ -9,5 +9,6 @@ router.get('/:id', validate({ params: appointmentParamsSchema }), appointmentCon
 router.post('/', validate({ body: appointmentBodySchema }), appointmentController.createAppointment)
 router.put('/:id', validate({ params: appointmentParamsSchema, body: appointmentBodySchema }), appointmentController.updateAppointment)
 router.patch('/:id/status', validate({ params: appointmentParamsSchema, body: changeStatusBodySchema }), appointmentController.changeAppointmentStatus)
+router.delete('/:id', validate({ params: appointmentParamsSchema }), appointmentController.removeAppointment)
 
 export default router

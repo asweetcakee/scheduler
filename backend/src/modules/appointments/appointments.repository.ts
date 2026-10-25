@@ -293,3 +293,18 @@ export const updateAppointmentStatus = async (
         throw new Error('Status update affected no rows')
     }
 }
+
+export const deleteAppointment = async (
+    client: PoolClient,
+    id: ID
+): Promise<void> => {
+    const result = await client.query(
+        `
+        DELETE FROM appointments
+        WHERE id = $1
+        `, [id]
+    )
+    if ((result.rowCount ?? 0) === 0) {
+        throw new NotFoundError(`Appointment with id ${id} not found`)
+    }
+}

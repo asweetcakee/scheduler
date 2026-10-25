@@ -239,3 +239,27 @@ export const changeAppointmentStatus = async (
 
     return toAppointmentResponse(row)
 }
+
+export const removeAppointment = async (appointmentId: ID): Promise<void> => {
+    const today = toBusinessLocal(new Date()).date
+
+    await withTransaction(
+        async client => {
+            // 404
+            const existing = await appointmentRepository.lockAppointmentById(client, appointmentId)
+            if (!existing) {
+                throw new NotFoundError(`Appointment with id ${appointmentId} not found`)
+            }
+
+            // 409
+            if (existing.status !== 'scheduled') {
+                throw new ConflictError(`Appointment is ${existing.status} and cannot be deleted`)
+            }
+            if (toBusinessLocal(existing.starts_at).date < today) {
+                throw new ConflictError('Appointments dated before today cannot be deleted')
+            }
+
+            await appointmentRepository.deleteAppointment(client, appointmentId)
+        }
+    )
+}

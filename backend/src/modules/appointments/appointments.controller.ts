@@ -79,3 +79,22 @@ export const changeAppointmentStatus = async (
         next(error)
     }
 }
+
+export const removeAppointment = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.params) {
+            res.status(500).json({ error: 'Missing validated params' })
+            return
+        }
+
+        const { id } = req.validated.params as AppointmentParams
+        await appointmentService.removeAppointment(id)
+        res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
+}
