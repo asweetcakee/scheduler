@@ -45,6 +45,9 @@ export const timeToMinutes = (time: string): number => {
     return h * 60 + m
 }
 
+export const minutesToTime = (minutes: number): string =>
+    `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+
 export const calculateEndsAt = ({ starts_at, duration }: { starts_at: TimeStampTZ, duration: Duration }): TimeStampTZ => {
     const startsAt = new Date(starts_at)
     return new Date(startsAt.getTime() + duration * 1000).toISOString()

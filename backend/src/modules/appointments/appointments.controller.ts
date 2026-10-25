@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
-import type { AppointmentParams, AppointmentBody, ChangeStatusBody } from '../../schemas/appointmentSchema.js'
+import type { AppointmentParams, AppointmentBody, ChangeStatusBody, AvailableMastersQuery } from '../../schemas/appointmentSchema.js'
 import * as appointmentService from './appointments.service.js'
 
 export const createAppointment = async (
@@ -94,6 +94,25 @@ export const removeAppointment = async (
         const { id } = req.validated.params as AppointmentParams
         await appointmentService.removeAppointment(id)
         res.status(204).send()
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const getAvailableMasters = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+        if (!req.validated?.query) {
+            res.status(500).json({ error: 'Missing validated query' })
+            return
+        }
+
+        const query = req.validated.query as AvailableMastersQuery
+        const masters = await appointmentService.findAvailableMasters(query)
+        res.status(200).json(masters)
     } catch (error) {
         next(error)
     }

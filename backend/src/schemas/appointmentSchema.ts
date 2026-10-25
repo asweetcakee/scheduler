@@ -26,6 +26,12 @@ const durationField = z
     .max(2147483647, { error: 'Длительность превышает допустимое значение' })
 export type Duration = z.infer<typeof durationField>
 
+const durationQueryField = z.coerce
+    .number()
+    .int()
+    .positive({ error: 'Длительность должна быть позитивным целым числом' })
+    .max(2147483647, { error: 'Длительность превышает допустимое значение' })
+
 const priceField = z
     .string()
     .trim()
@@ -57,3 +63,11 @@ export const changeStatusBodySchema = z.strictObject({
     status: statusField
 })
 export type ChangeStatusBody = z.infer<typeof changeStatusBodySchema>
+
+export const availableMastersQuerySchema = z.strictObject({
+    starts_at: timeStampField,
+    duration: durationQueryField,
+    client_id: idParam,
+    exclude_appointment_id: idParam.optional()
+})
+export type AvailableMastersQuery = z.infer<typeof availableMastersQuerySchema>

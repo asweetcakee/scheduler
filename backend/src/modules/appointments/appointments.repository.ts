@@ -308,3 +308,79 @@ export const deleteAppointment = async (
         throw new NotFoundError(`Appointment with id ${id} not found`)
     }
 }
+
+export type AvailableMasterRow = {
+    id: ID,
+    name: MasterName
+}
+
+export type AvailabilityQuery = {
+    date: ISODate,
+    day_of_week: DayOfWeek,
+    start_time: string,
+    end_time: string,
+    starts_at: TimeStampTZ,
+    ends_at: TimeStampTZ,
+    exclude_appointment_id: ID | null
+}
+
+export const hasClientConflict = async (
+    client_id: ID,
+    starts_at: TimeStampTZ,
+    ends_at: TimeStampTZ,
+    exclude_appointment_id: ID | null
+): Promise<boolean> => {
+    const result = await pool.query<{ busy: boolean }>(
+        `
+        SELECT EXISTS (
+            SELECT 1
+            FROM appointments a
+            WHERE a.client_id = $1
+              AND a.status <> 'cancelled'
+              AND a.starts_at < $3::timestamptz
+              AND a.ends_at > $2::timestamptz
+              AND ($4::bigint IS NULL OR a.id <> $4::bigint)
+        ) AS busy
+        `, [client_id, starts_at, ends_at, exclude_appointment_id]
+    )
+    return result.rows[0]?.busy ?? false
+}
+
+// copies findVersionForDate and findWorkingIntervals query, if version rules change
+// must edit all these 3 queries
+export const findAvailableMasters = async (
+    q: AvailabilityQuery
+): Promise<AvailableMasterRow[]> => {
+    const result = await pool.query<AvailableMasterRow>(
+        `
+        SELECT m.id, m.name
+        FROM masters m
+        WHERE m.active
+          AND EXISTS (
+              SELECT 1
+              FROM master_schedule_intervals i
+              WHERE i.day_of_week = $2
+                AND i.starts_at <= $3::time
+                AND $4::time <= i.ends_at
+                AND i.schedule_version_id = (
+                    SELECT v.id
+                    FROM master_schedule_versions v
+                    WHERE v.master_id = m.id AND v.effective_from <= $1::date
+                    ORDER BY v.effective_from DESC
+                    LIMIT 1
+                )
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM appointments a
+              WHERE a.master_id = m.id
+                AND a.status <> 'cancelled'
+                AND a.starts_at < $6::timestamptz
+                AND a.ends_at > $5::timestamptz
+                AND ($7::bigint IS NULL OR a.id <> $7::bigint)
+          )
+        ORDER BY m.name, m.id
+        `, [q.date, q.day_of_week, q.start_time, q.end_time, q.starts_at, q.ends_at, q.exclude_appointment_id]
+    )
+    return result.rows
+}

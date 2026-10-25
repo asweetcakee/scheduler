@@ -2,14 +2,15 @@ import type { PoolClient } from 'pg'
 import { withTransaction } from '../../db/withTransaction.js'
 import { NotFoundError } from '../../errors/NotFoundError.js'
 import { UnprocessableEntityError } from '../../errors/UnprocessableEntityError.js'
-import type { AppointmentBody, ChangeStatusBody, ID } from '../../schemas/appointmentSchema.js'
+import type { AppointmentBody, AvailableMastersQuery, ChangeStatusBody, ID } from '../../schemas/appointmentSchema.js'
 import { findClientByIdForBooking } from '../clients/client.repository.js'
 import { lockMasterByIdForBooking } from '../masters/master.repository.js'
 import { findServiceByIdForBooking } from '../services/service.repository.js'
 import { toAppointmentResponse, type AppointmentResponse } from './appointment.mapper.js'
 import * as appointmentRepository from './appointments.repository.js'
-import { calculateEndsAt, timeToMinutes, toBusinessLocal, type BusinessLocal } from './helper.js'
+import { calculateEndsAt, minutesToTime, timeToMinutes, toBusinessLocal, type BusinessLocal } from './helper.js'
 import { ConflictError } from '../../errors/ConflictError.js'
+import { findClientById } from '../clients/client.service.js'
 
 // Validates that the appointment fits entirely within a single working interval for a master 422
 // Shared between 'create' and 'update'
@@ -262,4 +263,45 @@ export const removeAppointment = async (appointmentId: ID): Promise<void> => {
             await appointmentRepository.deleteAppointment(client, appointmentId)
         }
     )
+}
+
+export const findAvailableMasters = async (
+    query: AvailableMastersQuery
+): Promise<appointmentRepository.AvailableMasterRow[]> => {
+    const { starts_at, duration, client_id } = query
+    const excludeId = query.exclude_appointment_id ?? null
+
+    // 404
+    await findClientById(client_id)
+
+    const endsAt = calculateEndsAt({ starts_at, duration })
+    const start = toBusinessLocal(new Date(starts_at))
+    const end = toBusinessLocal(new Date(endsAt))
+    const today = toBusinessLocal(new Date()).date
+
+    // 422
+    if (start.date < today) {
+        throw new UnprocessableEntityError('starts_at must not be earlier than today')
+    }
+
+    // Midnight crossing appointments are invalid, they cannot fit within a single schedule slot
+    if (start.date !== end.date) {
+        return []
+    }
+
+    // Client has an overlapping appointment (with any master), time slot is unavailable
+    const clientBusy = await appointmentRepository.hasClientConflict(client_id, starts_at, endsAt, excludeId)
+    if (clientBusy) {
+        return []
+    }
+
+    return appointmentRepository.findAvailableMasters({
+        date: start.date,
+        day_of_week: start.dayOfWeek,
+        start_time: minutesToTime(start.minutes),
+        end_time: minutesToTime(end.minutes),
+        starts_at,
+        ends_at: endsAt,
+        exclude_appointment_id: excludeId
+    })
 }
