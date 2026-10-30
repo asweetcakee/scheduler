@@ -9,13 +9,15 @@ import { MasterScheduleOverviewPage } from './pages/schedule/MasterScheduleOverv
 import { ScheduleVersionsListPage } from './pages/schedule/ScheduleVersionsListPage'
 import { ScheduleVersionCreatePage } from './pages/schedule/ScheduleVersionCreatePage'
 import { ScheduleVersionDetailPage } from './pages/schedule/ScheduleVersionDetailPage'
+import { CalendarPage } from './pages/CalendarPage'
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <AdminLayout />,
     children: [
-      { index: true, element: <Navigate to='/clients' replace /> },
+      { index: true, element: <Navigate to='/calendar' replace /> },
+      { path: 'calendar', element: <CalendarPage /> },
       { path: 'clients', element: <ClientPage /> },
       { path: 'masters', element: <MastersPage /> },
       { path: 'services', element: <ServicesPage /> },
