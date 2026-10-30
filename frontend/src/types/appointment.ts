@@ -44,5 +44,7 @@ export type AppointmentResponse = {
     price: string,
     status: AppointmentStatus,
     created_at: string,
-    snapshot: AppointmentSnapshot
+    snapshot: AppointmentSnapshot,
+    start_minutes: number,
+    end_minutes: number
 }

@@ -16,7 +16,9 @@ export type CalendarAppointmentResponse = {
     ends_at: TimeStampTZ
     duration: Duration
     price: Price
-    status: AppointmentStatus
+    status: AppointmentStatus,
+    start_minutes: number
+    end_minutes: number
 }
 
 export type CalendarIntervalResponse = {
@@ -60,7 +62,9 @@ const toAppointmentResponse = (row: CalendarAppointmentRow): CalendarAppointment
     ends_at: row.ends_at.toISOString(),
     duration: row.duration,
     price: row.price,
-    status: row.status
+    status: row.status,
+    start_minutes: row.start_minutes,
+    end_minutes: row.end_minutes
 })
 
 export const toCalendarMasterResponse = (
