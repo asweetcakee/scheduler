@@ -87,6 +87,7 @@ export const findAppointments = async (
         JOIN appointment_snapshots s ON s.appointment_id = a.id
         WHERE a.starts_at >= ($1::date::timestamp AT TIME ZONE $2::text)
           AND a.starts_at <  (($1::date + 1)::timestamp AT TIME ZONE $2::text)
+          AND a.status <> 'cancelled'
         ORDER BY a.starts_at, a.id
         `, [date, time_zone]
     )
