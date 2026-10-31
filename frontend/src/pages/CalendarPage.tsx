@@ -8,7 +8,6 @@ export const CalendarPage = () => {
     const today = useToday()
     const [date, setDate] = useState<ISODate>(today)
     const { data: calendar, isPending, isFetching, isError, error } = useCalendar(date)
-    console.log(calendar)
     
     return (
     <section className='flex w-full flex-col gap-3'>
@@ -35,37 +34,37 @@ export const CalendarPage = () => {
         </header>
 
         {isFetching && !isPending && (
-            <p className='text-sm text-muted-foreground' role='status'>
+            <p className='text-sm text-text-data' role='status'>
                 Обновление календаря...
             </p>
         )}
 
         {isPending ? (
             <div
-                className='flex min-h-64 items-center justify-center rounded-lg border border-border'
+                className='flex mx-4 min-h-64 items-center justify-center bg-surface rounded-lg'
                 role='status'
             >
-                <p className='text-sm text-muted-foreground'>
+                <p className='text-sm text-text-data'>
                     Загрузка календаря...
                 </p>
             </div>
         ) : isError ? (
             <div
-                className='rounded-lg border border-destructive/30 p-4'
+                className='mx-4 bg-surface rounded-lg'
                 role='alert'
             >
-                <p className='font-medium'>
+                <p className='font-medium text-danger'>
                     Не удалось загрузить календарь
                 </p>
-                <p className='mt-1 text-sm text-muted-foreground'>
+                <p className='mt-1 text-sm text-text-muted'>
                     {error instanceof Error
                         ? error.message
                         : 'Произошла неизвестная ошибка'}
                 </p>
             </div>
         ) : calendar.masters.length === 0 ? (
-            <div className='flex min-h-64 items-center justify-center rounded-lg border border-border p-6'>
-                <p className='text-sm text-muted-foreground'>
+            <div className='flex mx-4 min-h-64 items-center justify-center bg-surface rounded-lg'>
+                <p className='text-sm text-text-data'>
                     На выбранную дату нет расписания.
                 </p>
             </div>

@@ -11,9 +11,15 @@ export const Sidebar = () => {
     }
     
     return(
-        <div className='flex bg-surface min-w-50 shadow-lg shadow-primary/20 z-1'>
+        <div className='flex bg-surface min-w-50 shadow-lg shadow-primary/20 z-100'>
             <div className='mt-6 mx-4 flex-1'>
                 <div className='flex flex-col gap-2'>
+                    <NavLink 
+                        to='/calendar' 
+                        className={getNavLinkClass}
+                    >
+                        Календарь
+                    </NavLink>
                     <NavLink 
                         to='/clients' 
                         className={getNavLinkClass}
