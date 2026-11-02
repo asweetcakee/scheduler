@@ -41,7 +41,7 @@ export const CalendarLayout = ({ calendar }: CalendarLayoutProps) => {
     }
 
     return (
-        <div className='mx-4 min-w-0 overflow-x-auto'>
+        <div className='min-w-0 overflow-x-auto'>
             <div
                 className='grid w-max min-w-full items-start bg-surface rounded-t-lg p-4'
                 style={{

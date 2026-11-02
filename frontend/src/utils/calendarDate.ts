@@ -42,3 +42,24 @@ export const formatCalendarDate = (date: ISODate): string => {
 
     return `${Number(day)} ${months[month] ?? month} ${year}`
 }
+
+export const getCalendarMonthStart = (date: ISODate): ISODate => {
+    return `${date.slice(0, 7)}-01` as ISODate
+}
+
+export const addCalendarMonths = (
+    date: ISODate,
+    amount: number
+): ISODate => {
+    if (!Number.isInteger(amount)) {
+        throw new Error('Amount must be an integer')
+    }
+
+    const [year, month] = date.split('-').map(Number)
+    const totalMonths = year * 12 + (month - 1) + amount
+
+    const nextYear = Math.floor(totalMonths / 12)
+    const nextMonth = totalMonths - nextYear * 12 + 1
+
+    return `${String(nextYear).padStart(4, '0')}-${String(nextMonth).padStart(2, '0')}-01` as ISODate
+}

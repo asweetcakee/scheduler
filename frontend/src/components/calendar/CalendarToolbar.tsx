@@ -22,53 +22,37 @@ export const CalendarToolbar = ({ date, today, onDateChange }: CalendarToolbarPr
             </div>
 
             <div className='flex flex-col gap-1.5'>
-                <div className='flex items-center justify-between gap-2'>
-                    <label htmlFor='calendar-date' className='text-sm font-medium'>Дата</label>
-                    <span className='text-sm font-semibold text-text-secondary'>
-                        {formatCalendarDate(date)}
-                    </span>
-
+                <div className='flex items-center justify-between text-xs px-0.5'>
+                    <span className='font-medium text-text-muted'>Дата</span>
                     <button
                         type='button'
                         onClick={() => onDateChange(today)}
                         disabled={date === today}
-                        className='text-sm font-semibold text-accent-purple hover:text-accent-purple-hover hover:cursor-pointer disabled:opacity-0'
+                        className='text-accent-purple font-medium hover:underline disabled:opacity-30 disabled:no-underline disabled:cursor-not-allowed transition-all'
                     >
                         Сегодня
                     </button>
                 </div>
 
-                <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center justify-between bg-accent-purple/20 rounded-lg gap-1 transition-colors'>
                     <button
                         type='button'
                         aria-label='Предыдущий день'
-                        title='Предыдущий день'
                         onClick={() => onDateChange(addCalendarDays(date, -1))}
-                        className='flex px-4 py-1 items-center justify-center rounded-lg bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-semibold cursor-pointer transition-colors'
+                        className='px-3 py-1 flex items-center justify-center rounded-l-md text-text-muted hover:text-text hover:bg-accent-purple/40 transition-colors cursor-pointer'
                     >
                         ‹
                     </button>
 
-                    <input
-                        id='calendar-date'
-                        type='date'
-                        value={date}
-                        onChange={(e) => {
-                            const value = e.currentTarget.value
-
-                            if (value) {
-                                onDateChange(value as ISODate)
-                            }
-                        }}
-                        className='min-w-0 px-3 py-1.5 rounded-lg bg-accent-purple text-row-alt text-sm text-center [&::-webkit-calendar-picker-indicator]:invert focus:bg-accent-purple-hover focus:outline-none transition-colors'
-                    />
+                    <span className='text-sm font-medium text-text select-none'>
+                        {formatCalendarDate(date)}
+                    </span>
 
                     <button
                         type='button'
                         aria-label='Следующий день'
-                        title='Следующий день'
                         onClick={() => onDateChange(addCalendarDays(date, 1))}
-                        className='flex px-4 py-1 items-center justify-center rounded-lg bg-accent-purple hover:bg-accent-purple-hover text-text-alt font-semibold cursor-pointer transition-colors'
+                        className='px-3 py-1 flex items-center justify-center rounded-r-md text-text-muted hover:text-text hover:bg-accent-purple/40 transition-colors cursor-pointer'
                     >
                         ›
                     </button>
