@@ -3,6 +3,7 @@ import { useCalendar } from '../hooks/calendar'
 import { CalendarLayout } from '../layout/CalendarLayout'
 import type { ISODate } from '../schemas/scheduleSchema'
 import { useToday } from '../hooks/useToday'
+import { CalendarToolbar } from '../components/calendar/CalendarToolbar'
 
 export const CalendarPage = () => {
     const today = useToday()
@@ -11,27 +12,7 @@ export const CalendarPage = () => {
     
     return (
     <section className='flex w-full flex-col gap-3'>
-        <header className='flex flex-col gap-2 mx-4 mt-6 px-4 py-4 bg-surface sm:flex-row sm:items-center sm:justify-between rounded-lg'>
-            <div className='flex flex-col gap-1'>
-                <h1 className='text-2xl text-text font-semibold tracking-tight'>
-                    Календарь
-                </h1>
-                <p className='text-sm text-text-secondary'>
-                    Расписание мастеров и записи клиентов
-                </p>
-            </div>
-
-            <div className='flex flex-col gap-1.5'>
-                <label htmlFor='calendar-date' className='text-sm font-medium'>Дата</label>
-                <input
-                    id='calendar-date'
-                    type='date'
-                    value={date}
-                    onChange={(event) => setDate(event.currentTarget.value)}
-                    className='px-3 py-2 border rounded-lg bg-surface text-sm'
-                />
-            </div>
-        </header>
+        <CalendarToolbar date={date} today={today} onDateChange={setDate}/>
 
         {isFetching && !isPending && (
             <p className='text-sm text-text-data' role='status'>
