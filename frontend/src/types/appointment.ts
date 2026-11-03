@@ -1,3 +1,5 @@
+import type { ISODate } from '../schemas/scheduleSchema'
+
 export type AvailableMastersResponse = {
     id: number,
     name: string
@@ -48,3 +50,15 @@ export type AppointmentResponse = {
     start_minutes: number,
     end_minutes: number
 }
+
+export type AppointmentModalState =
+    {
+        type: 'create',
+        date: ISODate,
+        masterId: number,
+        startMinutes: number
+    } |
+    {
+        type: 'appointment',
+        appointmentId: number
+    } | null
