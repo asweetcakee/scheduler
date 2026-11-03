@@ -1,7 +1,9 @@
 import type { CalendarResponse } from '../types/calendar'
 
 type CalendarLayoutProps = {
-    calendar: CalendarResponse
+    calendar: CalendarResponse,
+    onCreateAppointment: (masterId: number, startMinutes: number) => void,
+    onOpenAppointment: (appointmentId: number) => void
 }
 
 const PIXELS_PER_MINUTE = 2
@@ -19,7 +21,7 @@ const formatMinutes = (minutes: number): string => {
     return `${String(hours).padStart(2, '0')}:${String(remainingMinutes).padStart(2, '0')}`
 }
 
-export const CalendarLayout = ({ calendar }: CalendarLayoutProps) => {
+export const CalendarLayout = ({ calendar, onCreateAppointment, onOpenAppointment }: CalendarLayoutProps) => {
     const { masters, time_range } = calendar
 
     if (!time_range) {
@@ -104,9 +106,18 @@ export const CalendarLayout = ({ calendar }: CalendarLayoutProps) => {
                                 }
                                 
                                 return (
-                                    <div
+                                    <button
                                         key={`${interval.starts_at}-${index}-${master.name}`}
-                                        className='pointer-events-none absolute inset-x-0 bg-surface'
+                                        type='button'
+                                        aria-label={`Создать запись: ${master.name}, ${interval.starts_at}-${interval.ends_at}`}
+                                        title={`Создать запись - ${master.name}`}
+                                        onClick={(e) => {
+                                            const rect = e.currentTarget.getBoundingClientRect()
+                                            const offsetMinutes = Math.round((e.clientY - rect.top)/PIXELS_PER_MINUTE)
+                                            const startMinutes = Math.min(visibleEnd - 1, visibleStart + Math.max(0, offsetMinutes))
+                                            onCreateAppointment(master.id, startMinutes)
+                                        }}
+                                        className='absolute inset-x-0 z-0 bg-surface hover:bg-accent-blue/10 cursor-cell transition-colors'
                                         style={{
                                             top: (visibleStart - rangeStart) * PIXELS_PER_MINUTE,
                                             height: (visibleEnd - visibleStart) * PIXELS_PER_MINUTE
@@ -138,15 +149,18 @@ export const CalendarLayout = ({ calendar }: CalendarLayoutProps) => {
                                 }
 
                                 return (
-                                    <article
+                                    <button
                                         key={appointment.id}
-                                        className={`absolute left-0 right-1 z-10 rounded-r-md flex text-xs`}
+                                        type='button'
+                                        aria-label={`${appointment.client_name}, ${appointment.service_name}`}
+                                        title={`${appointment.client_name} - ${appointment.service_name}`}
+                                        onClick={() => onOpenAppointment(appointment.id)}
+                                        className={`absolute left-0 right-1 z-10 rounded-r-md flex text-xs cursor-pointer`}
                                         style={{
                                             top: (visibleStart - rangeStart) * PIXELS_PER_MINUTE,
                                             height: (visibleEnd - visibleStart) * PIXELS_PER_MINUTE,
                                             backgroundColor: `color-mix(in srgb, ${statusVar} 40%, white)`
                                         }}
-                                        title={`${appointment.client_name} - ${appointment.service_name}`}
                                     >   
                                         <div className='w-2' style={{ backgroundColor: `color-mix(in srgb, ${statusVar} 70%, white)` }}/>
                                         <div className='flex flex-col gap-1 rounded-r-md w-full overflow-y-auto min-h-0'>
@@ -170,7 +184,7 @@ export const CalendarLayout = ({ calendar }: CalendarLayoutProps) => {
                                                 {formatMinutes(appointment.end_minutes)}
                                             </span>
                                         </div>
-                                    </article>
+                                    </button>
                                 )
                             })}
                         </div>

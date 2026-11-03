@@ -5,12 +5,46 @@ import type { ISODate } from '../schemas/scheduleSchema'
 import { useToday } from '../hooks/useToday'
 import { CalendarToolbar } from '../components/calendar/CalendarToolbar'
 import { MiniCalendar } from '../components/calendar/MiniCalendar'
+import { AppointmentFormModal } from '../components/appointments/AppointmentFormModal'
+import type { AppointmentModalState } from '../types/appointment'
 
 export const CalendarPage = () => {
     const today = useToday()
     const [date, setDate] = useState<ISODate>(today)
+    const [modalState, setModalState] = useState<AppointmentModalState>(null)
     const { data: calendar, isPending, isFetching, isError, error } = useCalendar(date)
-    
+
+    if (!calendar) return(
+        <div
+            className='flex mx-4 min-h-64 items-center justify-center bg-surface rounded-lg'
+            role='status'
+        >
+            <p className='text-sm text-text-data'>
+                Загрузка календаря...
+            </p>
+        </div>
+    )
+
+    const handleCreate = (masterId: number, startMinutes: number) => {
+        setModalState({
+            type: 'create',
+            date: calendar.date,
+            masterId,
+            startMinutes
+        })
+    }
+
+    const handleOpenEdit = (appointmentId: number) => {
+        setModalState({
+            type: 'appointment',
+            appointmentId
+        })
+    }
+
+    const handleClose = () => {
+        setModalState(null)
+    }
+
     return (
     <section className='flex w-full flex-col gap-3'>
         <CalendarToolbar date={date} today={today} onDateChange={setDate}/>
@@ -54,7 +88,11 @@ export const CalendarPage = () => {
                         </p>
                     </div>
                 ) : (
-                    <CalendarLayout calendar={calendar} />
+                    <CalendarLayout
+                        calendar={calendar}
+                        onCreateAppointment={handleCreate}
+                        onOpenAppointment={handleOpenEdit}
+                    />
                 )}
             </div>
 
@@ -66,6 +104,11 @@ export const CalendarPage = () => {
                 />
             </aside>
         </div>
+        {modalState !== null && (
+            <AppointmentFormModal
+                handleClose={handleClose}
+            />
+        )}
     </section>
     )
 }
